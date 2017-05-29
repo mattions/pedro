@@ -208,8 +208,8 @@ class Get_Value_Servo(Thread):
         #global ser
         global servo_change
         global serv1_chg, serv2_chg, serv3_chg, serv4_chg
-        # if there is stuff in the queue...
-        while not close_app:
+        print ("len(pedro_list) = " + str(len(pedro_list)))
+        while not close_app and len(pedro_list) > 0:
             while servo_change and ser.isOpen():
                 print (ser.isOpen())
                 print (servocmd)
