@@ -233,7 +233,6 @@ class Update_Block_Memory(Thread):
                 flowbox1.remove(flowbox1.get_child_at_index (indexFlowbox))
                 flowbox1.insert(FrameMem, indexFlowbox)
                 flowbox1.select_child(flowbox1.get_child_at_index (indexFlowbox))
-
                 LabelMem = Gtk.Label("    "+str(int(serv2Lbl.get_label()))+"    ")
                 FrameMem = Gtk.Frame()
                 color_widget(FrameMem, 'coral')
@@ -241,7 +240,6 @@ class Update_Block_Memory(Thread):
                 flowbox2.remove(flowbox2.get_child_at_index (indexFlowbox))
                 flowbox2.insert(FrameMem, indexFlowbox)
                 flowbox2.select_child(flowbox2.get_child_at_index (indexFlowbox))
-
                 LabelMem = Gtk.Label("    "+str(int(serv3Lbl.get_label()))+"    ")
                 FrameMem = Gtk.Frame()
                 color_widget(FrameMem, 'coral')
@@ -249,7 +247,6 @@ class Update_Block_Memory(Thread):
                 flowbox3.remove(flowbox3.get_child_at_index (indexFlowbox))
                 flowbox3.insert(FrameMem, indexFlowbox)
                 flowbox3.select_child(flowbox3.get_child_at_index (indexFlowbox))
-
                 LabelMem = Gtk.Label("    "+str(int(serv4Lbl.get_label()))+"    ")
                 FrameMem = Gtk.Frame()
                 color_widget(FrameMem, 'coral')
@@ -261,7 +258,6 @@ class Update_Block_Memory(Thread):
                 indexFlowbox = indexFlowbox + 1
                 if indexFlowbox > 254:
                     indexFlowbox = 0
-
 #window.show_all()
 """
 
@@ -402,18 +398,10 @@ class Pedro(Gtk.Window):
         hb.props.title = "Pedro"
         self.set_titlebar(hb)
         color_widget(self, 'White')
-        self.set_size_request(screen.get_width()/2, screen.get_height()/2)
-        #self.set_resizable(False)
+        self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.5)
+        self.set_resizable(False)
         self.mouseClick = False
         width, height = self.get_size()
-        buttonPLay = Gtk.Button("Play")
-        buttonPLay.connect("clicked", self.on_play_clicked)
-        buttonRecord = Gtk.Button("Record")
-        buttonRecord.connect("clicked", self.on_rec_clicked)
-        buttonStop = Gtk.Button("Stop")
-        buttonStop.connect("clicked", self.on_stop_clicked)
-        buttonrepeat = Gtk.CheckButton("Repeat")
-        buttonrepeat.connect("toggled", self.on_repeat_clicked)
         sepa = Gtk.VSeparator()
         buttonClose = Gtk.Button("Close")
         buttonClose.connect("clicked", self.on_close_clicked)
@@ -421,11 +409,6 @@ class Pedro(Gtk.Window):
         btnUpdate = Gtk.Button("Serial")
         btnUpdate.connect("clicked", self.on_serial_updated)
 
-        hb.pack_start(buttonPLay)
-        hb.pack_start(buttonRecord)
-        hb.pack_start(buttonStop)
-        hb.pack_start(buttonrepeat)
-        hb.pack_start(sepa)
         hb.pack_start(connected)
         hb.pack_start(pedro_combo)
         hb.pack_start(btnUpdate)
@@ -438,7 +421,7 @@ class Pedro(Gtk.Window):
 
         vpaned = Gtk.VPaned()
         hpaned = Gtk.HPaned()
-        vpaned.add1(hpaned) 
+        #vpaned.add1(hpaned) 
 
         ###########################################################
                
@@ -450,6 +433,7 @@ class Pedro(Gtk.Window):
         servboxV2 = Gtk.VBox()
         servboxV3 = Gtk.VBox()
         servboxV4 = Gtk.VBox()
+        box5 = Gtk.VBox()
         scrolled1 = Gtk.ScrolledWindow()
         scrolled1.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         boxH.pack_start(servboxH, False, False, 0)
@@ -464,8 +448,8 @@ class Pedro(Gtk.Window):
         label1 = Gtk.Label("Servo 1")
         boxV1 = Gtk.VBox()
         boxH1 = Gtk.HBox()
-        btn1Up.set_size_request(wdth, hght)
-        btn1Down.set_size_request(wdth, hght)
+        btn1Up.set_size_request(wdth/2, hght/2)
+        btn1Down.set_size_request(wdth/2, hght/2)
         btn1Up.connect('button-press-event', self.on_btn1Up_press)
         btn1Up.connect('button-release-event', self.on_btn1Up_release)
         btn1Down.connect('button-press-event', self.on_btn1Down_press)
@@ -483,8 +467,8 @@ class Pedro(Gtk.Window):
         label2 = Gtk.Label("Servo 2")
         boxV2 = Gtk.VBox()
         boxH2 = Gtk.HBox()
-        btn2Up.set_size_request(wdth, hght)
-        btn2Down.set_size_request(wdth, hght)
+        btn2Up.set_size_request(wdth/2, hght/2)
+        btn2Down.set_size_request(wdth/2, hght/2)
         btn2Up.connect('button-press-event', self.on_btn2Up_press)
         btn2Up.connect('button-release-event', self.on_btn2Up_release)
         btn2Down.connect('button-press-event', self.on_btn2Down_press)
@@ -502,8 +486,8 @@ class Pedro(Gtk.Window):
         label3 = Gtk.Label("Servo 3")
         boxV3 = Gtk.VBox()
         boxH3 = Gtk.HBox()
-        btn3Up.set_size_request(wdth, hght)
-        btn3Down.set_size_request(wdth, hght)
+        btn3Up.set_size_request(wdth/2, hght/2)
+        btn3Down.set_size_request(wdth/2, hght/2)
         btn3Up.connect('button-press-event', self.on_btn3Up_press)
         btn3Up.connect('button-release-event', self.on_btn3Up_release)
         btn3Down.connect('button-press-event', self.on_btn3Down_press)
@@ -521,8 +505,8 @@ class Pedro(Gtk.Window):
         label4 = Gtk.Label("Servo 4")
         boxV4 = Gtk.VBox()
         boxH4 = Gtk.HBox()
-        btn4Up.set_size_request(wdth, hght)
-        btn4Down.set_size_request(wdth, hght)
+        btn4Up.set_size_request(wdth/2, hght/2)
+        btn4Down.set_size_request(wdth/2, hght/2)
         btn4Up.connect('button-press-event', self.on_btn4Up_press)
         btn4Up.connect('button-release-event', self.on_btn4Up_release)
         btn4Down.connect('button-press-event', self.on_btn4Down_press)
@@ -536,7 +520,32 @@ class Pedro(Gtk.Window):
         servboxV4.pack_start(frame4, False, False, 10)
         servboxH.pack_start(servboxV4, False, False, 10)
        
-        hpaned.add1(scrolled1)
+
+
+        buttonRecord = Gtk.Button("Record")
+        buttonRecord.connect("clicked", self.on_rec_clicked)
+        buttonPLay = Gtk.Button("Play")
+        buttonPLay.connect("clicked", self.on_play_clicked)
+        buttonStop = Gtk.Button("Stop")
+        buttonStop.connect("clicked", self.on_stop_clicked)
+        buttonRepeat = Gtk.CheckButton("Repeat one time")
+        buttonRepeat.connect("toggled", self.on_repeat_clicked)
+        buttonClear = Gtk.Button("Clear")
+        buttonClear.connect("clicked", self.on_play_clicked)
+        box5.pack_start(buttonRecord, False, False, 10)
+        box5.pack_start(buttonPLay, False, False, 10)
+        box5.pack_start(buttonStop, False, False, 0)
+        box5.pack_start(buttonRepeat, False, False, 10)
+        box5.pack_start(buttonClear, False, False, 10)
+
+        align = Gtk.Alignment()
+        pbar = Gtk.ProgressBar() 
+        align.add(pbar) 
+        box5.pack_start(align, True, True, 5)
+
+        servboxH.pack_start(box5, False, False, 60)
+
+        vpaned.add1(scrolled1)
 
         ###########################################################
 
@@ -582,7 +591,7 @@ class Pedro(Gtk.Window):
         boxVdraw.pack_start(boxH, False, False, 10)
         boxVdraw.pack_start(drawing_area, True, True, 0)
 
-        hpaned.add2(scrolled)
+        vpaned.add2(boxVdraw)
         #boxH.pack_start(boxVdraw, False, False, 0)
 
         ###################################################
@@ -592,7 +601,7 @@ class Pedro(Gtk.Window):
         boxServo2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         boxServo3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         boxServo4 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        vpaned.add2(notebook)
+        #vpaned.add2(notebook)
 
         self.page1 = Gtk.Box()
         self.page1.set_border_width(10)
