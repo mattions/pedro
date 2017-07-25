@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #title           :pedro.py
-#description     :Interface for Pedro Petit Robot a 3D robotic arm, with serial USB control
+#description     :Interface for Pedro Petit Robot an open source 3D robotic arm, with serial USB control
 #author          :Almoutazar Saandi
 #date            :2016-2017
 #version         :1.0
