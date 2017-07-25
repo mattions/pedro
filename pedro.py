@@ -343,7 +343,7 @@ class Pedro(Gtk.Window):
         hb.props.title = "Pedro"
         self.set_titlebar(hb)
         color_widget(self, 'White')
-        self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.5)
+        self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.1)
         self.set_resizable(False)
         self.mouseClick = False
         width, height = self.get_size()
@@ -497,11 +497,6 @@ class Pedro(Gtk.Window):
         boxVdraw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         #color_widget(drawing_area, 'coral')
 
-        #scrolled = Gtk.ScrolledWindow()
-        #scrolled.set_size_request(width/2, height/3)
-        #scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        #scrolled.add(boxVdraw)
-
         image = Gtk.Image()
         #self.pixbuf = GdkPixbuf.Pixbuf.new_from_xpm_data(pedro_xpm)
         #image.set_from_pixbuf(self.pixbuf)
@@ -514,8 +509,7 @@ class Pedro(Gtk.Window):
         #self.checkerboard_draw_event(width/2, height/3, drawing_area.cairo_create())
         #drawing_area.add(image)
 
-        lock = Gtk.Frame(label='Lock')
-        lock.add(boxLockH)
+        lockLabel = Gtk.Label("Lock servo:")
         lock1 = Gtk.CheckButton("Servo 1")
         lock1.connect("toggled", self.on_lock_servo1)
         lock2 = Gtk.CheckButton("Servo 2")
@@ -524,18 +518,33 @@ class Pedro(Gtk.Window):
         lock3.connect("toggled", self.on_lock_servo3)
         lock4 = Gtk.CheckButton("Servo 4")
         lock4.connect("toggled", self.on_lock_servo4)
+        boxLockH.pack_start(lockLabel, False, False, 5)
         boxLockH.pack_start(lock1, False, False, 5)
         boxLockH.pack_start(lock2, False, False, 5)
         boxLockH.pack_start(lock3, False, False, 5)
         boxLockH.pack_start(lock4, False, False, 5)
+        
+        frameDraw = Gtk.Frame()
+        frameDraw.add(drawing_area)
 
         boxH = Gtk.HBox()
-        boxH.pack_start(lock, False, False, 10)
-        boxVdraw.pack_start(boxH, False, False, 10)
-        boxVdraw.pack_start(drawing_area, True, True, 0)
+        boxV1 = Gtk.VBox()
+        boxV2 = Gtk.VBox()
 
-        #vpaned.add2(boxVdraw)
-        boxV.pack_start(boxVdraw, False, False, 0)
+        boxH1 = Gtk.HBox()
+        boxH2 = Gtk.HBox()
+        boxH.pack_start(boxH1, False, False, 10)
+        boxH.pack_start(frameDraw, True, True, 0)
+        boxH.pack_start(boxH2, False, False, 10)
+
+        boxV1.pack_start(boxH, True, True, 0)
+
+        #boxH.pack_start(lock, False, False, 10)
+        boxVdraw.pack_start(boxLockH, False, False, 10)
+        boxVdraw.pack_start(boxV1, True, True, 0)
+        boxVdraw.pack_start(boxV2, False, False, 10)
+
+        boxV.pack_start(boxVdraw, True, True, 0)
 
         ###################################################
         
