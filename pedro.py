@@ -1,7 +1,7 @@
 import sys, os
 import glob
 import serial
-import cairo
+#import cairo
 import gi
 import glib
 import time
@@ -225,9 +225,9 @@ class Update_Serial():
         global updateSerial
         print (str(updateSerial))
         if updateSerial:
-            if not self.displayNoPedro:
-                self.displayNoPedro = True
-                print ("*** No pedro connected! ***")
+            #if not self.displayNoPedro:
+            #    self.displayNoPedro = True
+            #    print ("*** No pedro connected! ***")
             if sys.platform.startswith('win'):
                 ports = ['COM%s' % (i + 1) for i in range(256)]
             elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
@@ -249,7 +249,8 @@ class Update_Serial():
                     ser.write(bytearray([9, 1, 1, 0, 3, 1]))
                     ser_msg = ser.readline()
                     ser.close()
-                    if ser_msg.decode('utf-8') == "Hi! Im Pedro":
+                    if True:
+                    #if ser_msg.decode('utf-8') == "Hi! Im Pedro":
                         print(ser_msg.decode('utf-8'))
                         pedro_list["Robot Pedro " + str(len(pedro_list)+1)] = port
                         pedro_combo.append_text("Robot Pedro " + str(len(pedro_list)))
