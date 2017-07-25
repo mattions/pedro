@@ -206,61 +206,6 @@ pedro_xpm = [
 "                                                "
 ]
 
-"""
-#=======================================
-# Update_Block_Memory
-#=======================================
-class Update_Block_Memory(Thread):
-    
-    # ---------------------------------
-    # __init__
-    # ---------------------------------
-    def __init__(self):
-        Thread.__init__(self)
-		
-    # ---------------------------------
-    # run
-    # ---------------------------------    
-    def run(self):
-        global indexFlowbox
-        while not close_app:
-            if servo_change:
-                
-                LabelMem = Gtk.Label("    "+str(int(serv1Lbl.get_label()))+"    ")
-                FrameMem = Gtk.Frame()
-                color_widget(FrameMem, 'coral')
-                FrameMem.add(LabelMem)
-                flowbox1.remove(flowbox1.get_child_at_index (indexFlowbox))
-                flowbox1.insert(FrameMem, indexFlowbox)
-                flowbox1.select_child(flowbox1.get_child_at_index (indexFlowbox))
-                LabelMem = Gtk.Label("    "+str(int(serv2Lbl.get_label()))+"    ")
-                FrameMem = Gtk.Frame()
-                color_widget(FrameMem, 'coral')
-                FrameMem.add(LabelMem)
-                flowbox2.remove(flowbox2.get_child_at_index (indexFlowbox))
-                flowbox2.insert(FrameMem, indexFlowbox)
-                flowbox2.select_child(flowbox2.get_child_at_index (indexFlowbox))
-                LabelMem = Gtk.Label("    "+str(int(serv3Lbl.get_label()))+"    ")
-                FrameMem = Gtk.Frame()
-                color_widget(FrameMem, 'coral')
-                FrameMem.add(LabelMem)
-                flowbox3.remove(flowbox3.get_child_at_index (indexFlowbox))
-                flowbox3.insert(FrameMem, indexFlowbox)
-                flowbox3.select_child(flowbox3.get_child_at_index (indexFlowbox))
-                LabelMem = Gtk.Label("    "+str(int(serv4Lbl.get_label()))+"    ")
-                FrameMem = Gtk.Frame()
-                color_widget(FrameMem, 'coral')
-                FrameMem.add(LabelMem)
-                flowbox4.remove(flowbox4.get_child_at_index (indexFlowbox))
-                flowbox4.insert(FrameMem, indexFlowbox)
-                flowbox4.select_child(flowbox4.get_child_at_index (indexFlowbox))
-                
-                indexFlowbox = indexFlowbox + 1
-                if indexFlowbox > 254:
-                    indexFlowbox = 0
-#window.show_all()
-"""
-
 
 #=======================================
 # Update_Serial
@@ -439,7 +384,6 @@ class Pedro(Gtk.Window):
         boxH.pack_start(servboxH, False, False, 0)
         boxH.set_size_request(width/2, height/3)
         boxV.pack_start(boxH, False, False, 0)
-        scrolled1.add(boxV)
 
         wdth = width/4
         hght = height/4
@@ -519,8 +463,6 @@ class Pedro(Gtk.Window):
         frame4.add(boxH4)
         servboxV4.pack_start(frame4, False, False, 10)
         servboxH.pack_start(servboxV4, False, False, 10)
-       
-
 
         buttonRecord = Gtk.Button("Record")
         buttonRecord.connect("clicked", self.on_rec_clicked)
@@ -538,14 +480,15 @@ class Pedro(Gtk.Window):
         box5.pack_start(buttonRepeat, False, False, 10)
         box5.pack_start(buttonClear, False, False, 10)
 
-        align = Gtk.Alignment()
-        pbar = Gtk.ProgressBar() 
-        align.add(pbar) 
-        box5.pack_start(align, True, True, 5)
-
         servboxH.pack_start(box5, False, False, 60)
 
-        vpaned.add1(scrolled1)
+
+        ###########################################################
+        align = Gtk.Alignment()
+        pbar = Gtk.ProgressBar()
+        align.add(pbar)
+        
+        boxV.pack_start(align, False, False, 0)
 
         ###########################################################
 
@@ -554,10 +497,10 @@ class Pedro(Gtk.Window):
         boxVdraw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         #color_widget(drawing_area, 'coral')
 
-        scrolled = Gtk.ScrolledWindow()
-        scrolled.set_size_request(width/2, height/3)
-        scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scrolled.add(boxVdraw)
+        #scrolled = Gtk.ScrolledWindow()
+        #scrolled.set_size_request(width/2, height/3)
+        #scrolled.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        #scrolled.add(boxVdraw)
 
         image = Gtk.Image()
         #self.pixbuf = GdkPixbuf.Pixbuf.new_from_xpm_data(pedro_xpm)
@@ -591,143 +534,12 @@ class Pedro(Gtk.Window):
         boxVdraw.pack_start(boxH, False, False, 10)
         boxVdraw.pack_start(drawing_area, True, True, 0)
 
-        vpaned.add2(boxVdraw)
-        #boxH.pack_start(boxVdraw, False, False, 0)
+        #vpaned.add2(boxVdraw)
+        boxV.pack_start(boxVdraw, False, False, 0)
 
         ###################################################
         
-        #color_widget(notebook, 'black')
-        boxServo1 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        boxServo2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        boxServo3 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        boxServo4 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        #vpaned.add2(notebook)
-
-        self.page1 = Gtk.Box()
-        self.page1.set_border_width(10)
-        self.page1.add(boxServo1)
-        notebook.append_page(self.page1, Gtk.Label('Block memory servo 1'))
-
-        self.page2 = Gtk.Box()
-        self.page2.set_border_width(10)
-        self.page2.add(boxServo2)
-        notebook.append_page(self.page2, Gtk.Label('Block memory servo 2'))
-
-        self.page3 = Gtk.Box()
-        self.page3.set_border_width(10)
-        self.page3.add(boxServo3)
-        notebook.append_page(self.page3, Gtk.Label('Block memory servo 3'))
-
-        self.page4 = Gtk.Box()
-        self.page4.set_border_width(10)
-        self.page4.add(boxServo4)
-        notebook.append_page(self.page4, Gtk.Label('Block memory servo 4'))
-        
-        scrolled1 = Gtk.ScrolledWindow()
-        scrolled1.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        boxV1 = Gtk.VBox()
-        boxH1 = Gtk.HBox()
-        frame = Gtk.Frame(label = "home position")
-        label = Gtk.Label("    40    ")
-        frame.add(label)
-        boxH1.pack_start(frame, True, False, 5) #interessant boxH1.pack_start(frame, True, True, 5)
-        boxV1.pack_start(boxH1, False, False, 5) 
-        boxV1.pack_start(flowbox1, False, False, 5)
-
-        scrolled2 = Gtk.ScrolledWindow()
-        scrolled2.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        boxV2 = Gtk.VBox()
-        boxH2 = Gtk.HBox()
-        frame = Gtk.Frame(label = "home position")
-        label = Gtk.Label("    50    ")
-        frame.add(label)
-        boxH2.pack_start(frame, True, False, 5) #interessant boxH2.pack_start(frame, True, True, 5)
-        boxV2.pack_start(boxH2, False, False, 5) 
-        boxV2.pack_start(flowbox2, False, False, 5)
-
-        scrolled3 = Gtk.ScrolledWindow()
-        scrolled3.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        boxV3 = Gtk.VBox()
-        boxH3 = Gtk.HBox()
-        frame = Gtk.Frame(label = "home position")
-        label = Gtk.Label("    60    ")
-        frame.add(label)
-        boxH3.pack_start(frame, True, False, 5) #interessant boxH3.pack_start(frame, True, True, 5)
-        boxV3.pack_start(boxH3, False, False, 5) 
-        boxV3.pack_start(flowbox3, False, False, 5)
-
-        scrolled4 = Gtk.ScrolledWindow()
-        scrolled4.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        boxV4 = Gtk.VBox()
-        boxH4 = Gtk.HBox()
-        frame = Gtk.Frame(label = "home position")
-        label = Gtk.Label("    70    ")
-        frame.add(label)
-        boxH4.pack_start(frame, True, False, 5) #interessant boxH4.pack_start(frame, True, True, 5)
-        boxV4.pack_start(boxH4, False, False, 5) 
-        boxV4.pack_start(flowbox4, False, False, 5)
-
-        Initial_Minimum_Length = 20
-        Initial_Maximum_Length = 5
-        Initial_Cspacing       = 2
-        Initial_Rspacing       = 2
-
-        flowbox1.set_valign(Gtk.Align.START)
-        flowbox1.set_halign (Gtk.Align.CENTER);
-        flowbox1.set_max_children_per_line(30)
-        flowbox1.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        #flowbox1.set_column_spacing (Initial_Cspacing);
-        #flowbox1.set_row_spacing (Initial_Rspacing);
-        flowbox1.set_min_children_per_line (Initial_Minimum_Length);
-        #flowbox1.set_max_children_per_line (Initial_Maximum_Length);
-
-        flowbox2.set_valign(Gtk.Align.START)
-        flowbox2.set_halign (Gtk.Align.CENTER);
-        flowbox2.set_max_children_per_line(30)
-        flowbox2.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        #flowbox2.set_column_spacing (Initial_Cspacing);
-        #flowbox2.set_row_spacing (Initial_Rspacing);
-        flowbox2.set_min_children_per_line (Initial_Minimum_Length);
-        #flowbox2.set_max_children_per_line (Initial_Maximum_Length);
-
-        flowbox3.set_valign(Gtk.Align.START)
-        flowbox3.set_halign (Gtk.Align.CENTER);
-        flowbox3.set_max_children_per_line(30)
-        flowbox3.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        #flowbox3.set_column_spacing (Initial_Cspacing);
-        #flowbox3.set_row_spacing (Initial_Rspacing);
-        flowbox3.set_min_children_per_line (Initial_Minimum_Length);
-        #flowbox3.set_max_children_per_line (Initial_Maximum_Length);
-
-        flowbox4.set_valign(Gtk.Align.START)
-        flowbox4.set_halign (Gtk.Align.CENTER);
-        flowbox4.set_max_children_per_line(30)
-        flowbox4.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        #flowbox4.set_column_spacing (Initial_Cspacing);
-        #flowbox4.set_row_spacing (Initial_Rspacing);
-        flowbox4.set_min_children_per_line (Initial_Minimum_Length);
-        #flowbox4.set_max_children_per_line (Initial_Maximum_Length);
-
-        self.create_flowbox(flowbox1)
-        self.create_flowbox(flowbox2)
-        self.create_flowbox(flowbox3)
-        self.create_flowbox(flowbox4)
-
-        flowbox1.select_child(flowbox1.get_child_at_index (0))
-        flowbox2.select_child(flowbox2.get_child_at_index (0))
-        flowbox3.select_child(flowbox3.get_child_at_index (0))
-        flowbox4.select_child(flowbox4.get_child_at_index (0))
-
-        scrolled1.add(boxV1)
-        scrolled2.add(boxV2)
-        scrolled3.add(boxV3)
-        scrolled4.add(boxV4)
-        boxServo1.pack_start(scrolled1, True, True, 0)
-        boxServo2.pack_start(scrolled2, True, True, 0)
-        boxServo3.pack_start(scrolled3, True, True, 0)
-        boxServo4.pack_start(scrolled4, True, True, 0)
-
-        self.add(vpaned)
+        self.add(boxV)
         global initApp
         initApp = True
 
@@ -1309,78 +1121,3 @@ Gtk.main()
 
 
 
-#############################################
-
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GObject
-
-class ProgressBarWindow(Gtk.Window):
-
-    def __init__(self):
-        Gtk.Window.__init__(self, title="ProgressBar Demo")
-        self.set_border_width(10)
-
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        self.add(vbox)
-
-        self.progressbar = Gtk.ProgressBar()
-        vbox.pack_start(self.progressbar, True, True, 0)
-
-        button = Gtk.CheckButton("Show text")
-        button.connect("toggled", self.on_show_text_toggled)
-        vbox.pack_start(button, True, True, 0)
-
-        button = Gtk.CheckButton("Activity mode")
-        button.connect("toggled", self.on_activity_mode_toggled)
-        vbox.pack_start(button, True, True, 0)
-
-        button = Gtk.CheckButton("Right to Left")
-        button.connect("toggled", self.on_right_to_left_toggled)
-        vbox.pack_start(button, True, True, 0)
-
-        self.timeout_id = GObject.timeout_add(50, self.on_timeout, None)
-        self.activity_mode = False
-
-    def on_show_text_toggled(self, button):
-        show_text = button.get_active()
-        if show_text:
-            text = "some text"
-        else:
-            text = None
-        self.progressbar.set_text(text)
-        self.progressbar.set_show_text(show_text)
-
-    def on_activity_mode_toggled(self, button):
-        self.activity_mode = button.get_active()
-        if self.activity_mode:
-            self.progressbar.pulse()
-        else:
-            self.progressbar.set_fraction(0.0)
-
-    def on_right_to_left_toggled(self, button):
-        value = button.get_active()
-        self.progressbar.set_inverted(value)
-
-    def on_timeout(self, user_data):
-        """
-        Update value on the progress bar
-        """
-        if self.activity_mode:
-            self.progressbar.pulse()
-        else:
-            new_value = self.progressbar.get_fraction() + 0.01
-
-            if new_value > 1:
-                new_value = 0
-
-            self.progressbar.set_fraction(new_value)
-
-        # As this is a timeout function, return True so that it
-        # continues to get called
-        return True
-
-win = ProgressBarWindow()
-win.connect("delete-event", Gtk.main_quit)
-win.show_all()
-Gtk.main()
