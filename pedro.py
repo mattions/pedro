@@ -391,6 +391,8 @@ class Pedro(Gtk.Window):
         box5 = Gtk.VBox()
         scrolled1 = Gtk.ScrolledWindow()
         scrolled1.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        box7 = Gtk.HBox()
+        boxH.pack_start(box7, False, False, 10)
         boxH.pack_start(servboxH, False, False, 0)
         boxH.set_size_request(width/2, height/3)
         boxV.pack_start(boxH, False, False, 0)
@@ -402,8 +404,8 @@ class Pedro(Gtk.Window):
         label1 = Gtk.Label("Servo 1")
         boxV1 = Gtk.VBox()
         boxH1 = Gtk.HBox()
-        btn1Up.set_size_request(wdth/2, hght/2)
-        btn1Down.set_size_request(wdth/2, hght/2)
+        btn1Up.set_size_request(wdth/2.5, hght/2.5)
+        btn1Down.set_size_request(wdth/2.5, hght/2.5)
         btn1Up.connect('button-press-event', self.on_btn1Up_press)
         btn1Up.connect('button-release-event', self.on_btn1Up_release)
         btn1Down.connect('button-press-event', self.on_btn1Down_press)
@@ -415,14 +417,14 @@ class Pedro(Gtk.Window):
         boxH1.pack_start(boxV1, False, False, 10)
         frame1.add(boxH1)
         servboxV1.pack_start(frame1, False, False, 10)
-        servboxH.pack_start(servboxV1, False, False, 10)
+        servboxH.pack_start(servboxV1, False, False, 0)
         
         frame2 = Gtk.Frame()
         label2 = Gtk.Label("Servo 2")
         boxV2 = Gtk.VBox()
         boxH2 = Gtk.HBox()
-        btn2Up.set_size_request(wdth/2, hght/2)
-        btn2Down.set_size_request(wdth/2, hght/2)
+        btn2Up.set_size_request(wdth/2.5, hght/2.5)
+        btn2Down.set_size_request(wdth/2.5, hght/2.5)
         btn2Up.connect('button-press-event', self.on_btn2Up_press)
         btn2Up.connect('button-release-event', self.on_btn2Up_release)
         btn2Down.connect('button-press-event', self.on_btn2Down_press)
@@ -440,8 +442,8 @@ class Pedro(Gtk.Window):
         label3 = Gtk.Label("Servo 3")
         boxV3 = Gtk.VBox()
         boxH3 = Gtk.HBox()
-        btn3Up.set_size_request(wdth/2, hght/2)
-        btn3Down.set_size_request(wdth/2, hght/2)
+        btn3Up.set_size_request(wdth/2.5, hght/2.5)
+        btn3Down.set_size_request(wdth/2.5, hght/2.5)
         btn3Up.connect('button-press-event', self.on_btn3Up_press)
         btn3Up.connect('button-release-event', self.on_btn3Up_release)
         btn3Down.connect('button-press-event', self.on_btn3Down_press)
@@ -459,8 +461,8 @@ class Pedro(Gtk.Window):
         label4 = Gtk.Label("Servo 4")
         boxV4 = Gtk.VBox()
         boxH4 = Gtk.HBox()
-        btn4Up.set_size_request(wdth/2, hght/2)
-        btn4Down.set_size_request(wdth/2, hght/2)
+        btn4Up.set_size_request(wdth/2.5, hght/2.5)
+        btn4Down.set_size_request(wdth/2.5, hght/2.5)
         btn4Up.connect('button-press-event', self.on_btn4Up_press)
         btn4Up.connect('button-release-event', self.on_btn4Up_release)
         btn4Down.connect('button-press-event', self.on_btn4Down_press)
@@ -478,27 +480,54 @@ class Pedro(Gtk.Window):
         buttonRecord.connect("clicked", self.on_rec_clicked)
         buttonPLay = Gtk.Button("Play")
         buttonPLay.connect("clicked", self.on_play_clicked)
+        buttonPause = Gtk.Button("Pause")
+        buttonPause.connect("clicked", self.on_play_clicked)
         buttonStop = Gtk.Button("Stop")
         buttonStop.connect("clicked", self.on_stop_clicked)
         buttonRepeat = Gtk.CheckButton("Repeat one time")
         buttonRepeat.connect("toggled", self.on_repeat_clicked)
         buttonClear = Gtk.Button("Clear")
         buttonClear.connect("clicked", self.on_play_clicked)
+
+        boxHSpeed = Gtk.HBox()
+        speedLabel = Gtk.Label("Speed: ")
+        ad1 = Gtk.Adjustment(1, 1, 4, 5, 10, 0)
+        self.speed_scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=ad1)
+        self.speed_scale.set_digits(0)
+        self.speed_scale.set_hexpand(True)
+        self.speed_scale.set_valign(Gtk.Align.START)
+        self.speed_scale.connect("value-changed", self.update_speed)
+        boxHSpeed.pack_start(speedLabel, False, False, 0)
+        boxHSpeed.pack_start(self.speed_scale, True, True, 0)
+
         box5.pack_start(buttonRecord, False, False, 10)
         box5.pack_start(buttonPLay, False, False, 10)
+        box5.pack_start(buttonPause, False, False, 10)
         box5.pack_start(buttonStop, False, False, 0)
         box5.pack_start(buttonRepeat, False, False, 10)
         box5.pack_start(buttonClear, False, False, 10)
+        box5.pack_start(boxHSpeed, False, False, 10)
+        boxH.pack_start(box5, True, True, 0)
 
-        servboxH.pack_start(box5, False, False, 60)
-
+        box6 = Gtk.HBox()
+        boxH.pack_start(box6, False, False, 10)
 
         ###########################################################
         align = Gtk.Alignment()
         pbar = Gtk.ProgressBar()
         align.add(pbar)
+
+        boxHBar = Gtk.HBox()
+
+        boxH1Bar = Gtk.HBox()
+        boxH2Bar = Gtk.HBox()
+        boxHBar.pack_start(boxH1Bar, False, False, 10)
+        boxHBar.pack_start(align, True, True, 0)
+        boxHBar.pack_start(boxH2Bar, False, False, 10)
         
-        boxV.pack_start(align, False, False, 0)
+        memoryLabel = Gtk.Label("Memory used: 0%")
+        boxV.pack_start(memoryLabel, False, False, 10)
+        boxV.pack_start(boxHBar, False, False, 10)
 
         ###########################################################
 
@@ -518,6 +547,9 @@ class Pedro(Gtk.Window):
         #drawing_area.connect('draw', self.checkerboard_draw_event)
         #self.checkerboard_draw_event(width/2, height/3, drawing_area.cairo_create())
         #drawing_area.add(image)
+
+        drawLabel = Gtk.Label("Click on right/left button mouse for move Pedro...")
+        drawing_area.add(drawLabel)
 
         lockLabel = Gtk.Label("Lock servo:")
         lock1 = Gtk.CheckButton("Servo 1")
@@ -547,14 +579,17 @@ class Pedro(Gtk.Window):
         boxH.pack_start(frameDraw, True, True, 0)
         boxH.pack_start(boxH2, False, False, 10)
 
-        boxV1.pack_start(boxH, True, True, 0)
+        boxV1.pack_start(boxH, True, True, 10)
+
+        boxHLock = Gtk.HBox()
+        boxHLock.pack_start(boxLockH, False, False, 10)
 
         #boxH.pack_start(lock, False, False, 10)
-        boxVdraw.pack_start(boxLockH, False, False, 10)
         boxVdraw.pack_start(boxV1, True, True, 0)
-        boxVdraw.pack_start(boxV2, False, False, 10)
+        boxVdraw.pack_start(boxHLock, False, False, 0)
+        boxVdraw.pack_start(boxV2, False, False, 0)
 
-        boxV.pack_start(boxVdraw, True, True, 0)
+        boxV.pack_start(boxVdraw, True, True, 10)
 
         ###################################################
         
@@ -601,6 +636,12 @@ class Pedro(Gtk.Window):
             xcount += 1
 
         return True
+
+    # ---------------------------------
+    # update_speed
+    # ---------------------------------
+    def update_speed(self, event):
+        print("speed value: " + str(int(self.speed_scale.get_value())))
 
 
     # ---------------------------------
@@ -1137,6 +1178,3 @@ window.show_all()
 Gtk.main()
 
 #update_block.join()
-
-
-
