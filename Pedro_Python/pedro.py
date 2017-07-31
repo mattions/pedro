@@ -4,7 +4,7 @@
 #!/usr/bin/env python
 #title           :pedro.py
 #description     :Interface for Pedro Petit Robot an open source 3D robotic arm, with serial USB control
-#author          :Almoutazar Saandi
+#authors         :Almoutazar Saandi, Mohamed Salim Wadaane
 #date            :2016-2017
 #version         :1.0
 #usage           :python3 pedro.py
@@ -17,6 +17,8 @@ import serial
 import gi
 import glib
 import time
+import cairo
+from math import pi, atan2, sin, cos, degrees, acos, asin, sqrt
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import threading
@@ -101,122 +103,32 @@ initApp = False
 
 THR_LOCK = threading.Lock()
 
+#=======================================
+# For cairo
+#=======================================
+SIZE = 100
+Width = 3*SIZE
+Height = 5*SIZE
+length_Forearm = 2*SIZE
+length_Hand = SIZE
+length_EndPoint = 0.4*SIZE
+r = 1
+Y = 0
+R = 1
 
-pedro_xpm = [
-"48 48 64 1",
-"       c None",
-".      c #DF7DCF3CC71B",
-"X      c #965875D669A6",
-"o      c #71C671C671C6",
-"O      c #A699A289A699",
-"+      c #965892489658",
-"@      c #8E38410330C2",
-"#      c #D75C7DF769A6",
-"$      c #F7DECF3CC71B",
-"%      c #96588A288E38",
-"&      c #A69992489E79",
-"*      c #8E3886178E38",
-"=      c #104008200820",
-"-      c #596510401040",
-";      c #C71B30C230C2",
-":      c #C71B9A699658",
-">      c #618561856185",
-",      c #20811C712081",
-"<      c #104000000000",
-"1      c #861720812081",
-"2      c #DF7D4D344103",
-"3      c #79E769A671C6",
-"4      c #861782078617",
-"5      c #41033CF34103",
-"6      c #000000000000",
-"7      c #49241C711040",
-"8      c #492445144924",
-"9      c #082008200820",
-"0      c #69A618611861",
-"q      c #B6DA71C65144",
-"w      c #410330C238E3",
-"e      c #CF3CBAEAB6DA",
-"r      c #71C6451430C2",
-"t      c #EFBEDB6CD75C",
-"y      c #28A208200820",
-"u      c #186110401040",
-"i      c #596528A21861",
-"p      c #71C661855965",
-"a      c #A69996589658",
-"s      c #30C228A230C2",
-"d      c #BEFBA289AEBA",
-"f      c #596545145144",
-"g      c #30C230C230C2",
-"h      c #8E3882078617",
-"j      c #208118612081",
-"k      c #38E30C300820",
-"l      c #30C2208128A2",
-"z      c #38E328A238E3",
-"x      c #514438E34924",
-"c      c #618555555965",
-"v      c #30C2208130C2",
-"b      c #38E328A230C2",
-"n      c #28A228A228A2",
-"m      c #41032CB228A2",
-"M      c #104010401040",
-"N      c #492438E34103",
-"B      c #28A2208128A2",
-"V      c #A699596538E3",
-"C      c #30C21C711040",
-"Z      c #30C218611040",
-"A      c #965865955965",
-"S      c #618534D32081",
-"D      c #38E31C711040",
-"F      c #082000000820",
-"                                                ",
-"          .XoO                                  ",
-"         +@#$%o&                                ",
-"         *=-;#::o+                              ",
-"           >,<12#:34                            ",
-"             45671#:X3                          ",
-"               +89<02qwo                        ",
-"e*                >,67;ro                       ",
-"ty>                 459@>+&&                    ",
-"$2u+                  ><ipas8*                  ",
-"%$;=*                *3:.Xa.dfg>                ",
-"Oh$;ya             *3d.a8j,Xe.d3g8+             ",
-" Oh$;ka          *3d$a8lz,,xxc:.e3g54           ",
-"  Oh$;kO       *pd$%svbzz,sxxxxfX..&wn>         ",
-"   Oh$@mO    *3dthwlsslszjzxxxxxxx3:td8M4       ",
-"    Oh$@g& *3d$XNlvvvlllm,mNwxxxxxxxfa.:,B*     ",
-"     Oh$@,Od.czlllllzlmmqV@V#V@fxxxxxxxf:%j5&   ",
-"      Oh$1hd5lllslllCCZrV#r#:#2AxxxxxxxxxcdwM*  ",
-"       OXq6c.%8vvvllZZiqqApA:mq:Xxcpcxxxxxfdc9* ",
-"        2r<6gde3bllZZrVi7S@SV77A::qApxxxxxxfdcM ",
-"        :,q-6MN.dfmZZrrSS:#riirDSAX@Af5xxxxxfevo",
-"         +A26jguXtAZZZC7iDiCCrVVii7Cmmmxxxxxx%3g",
-"          *#16jszN..3DZZZZrCVSA2rZrV7Dmmwxxxx&en",
-"           p2yFvzssXe:fCZZCiiD7iiZDiDSSZwwxx8e*>",
-"           OA1<jzxwwc:$d%NDZZZZCCCZCCZZCmxxfd.B ",
-"            3206Bwxxszx%et.eaAp77m77mmmf3&eeeg* ",
-"             @26MvzxNzvlbwfpdettttttttttt.c,n&  ",
-"             *;16=lsNwwNwgsvslbwwvccc3pcfu<o    ",
-"              p;<69BvwwsszslllbBlllllllu<5+     ",
-"              OS0y6FBlvvvzvzss,u=Blllj=54       ",
-"               c1-699Blvlllllu7k96MMMg4         ",
-"               *10y8n6FjvllllB<166668           ",
-"                S-kg+>666<M<996-y6n<8*          ",
-"                p71=4 m69996kD8Z-66698&&        ",
-"                &i0ycm6n4 ogk17,0<6666g         ",
-"                 N-k-<>     >=01-kuu666>        ",
-"                 ,6ky&      &46-10ul,66,        ",
-"                 Ou0<>       o66y<ulw<66&       ",
-"                  *kk5       >66By7=xu664       ",
-"                   <<M4      466lj<Mxu66o       ",
-"                   *>>       +66uv,zN666*       ",
-"                              566,xxj669        ",
-"                              4666FF666>        ",
-"                               >966666M         ",
-"                                oM6668+         ",
-"                                  *4            ",
-"                                                ",
-"                                                "
-]
+global drawingarea
+mXL = 0
+mYL = 0
+mXR = 0
+mYR = 0
+isForearm = True
+base = 0
+forearm = 0
+hand = 0
+originX = 0
+originY = 0
+useIk = True
+#=======================================
 
 
 #=======================================
@@ -537,40 +449,26 @@ class Pedro(Gtk.Window):
         boxLockH = Gtk.HBox()
         drawing_area = Gtk.EventBox()
         boxVdraw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        #color_widget(drawing_area, 'coral')
 
-        image = Gtk.Image()
-        #self.pixbuf = GdkPixbuf.Pixbuf.new_from_xpm_data(pedro_xpm)
-        #image.set_from_pixbuf(self.pixbuf)
-        #image.set_from_file(self.ressource_path('pedro.png'))
-        #drawing_area.set_size_request(780, 500)
         drawing_area.connect('button-press-event', self.on_area_button_press)
         drawing_area.connect('button-release-event', self.on_area_button_release)
         drawing_area.connect('motion-notify-event', self.on_area_motion)
-        #drawing_area.connect('draw', self.checkerboard_draw_event)
-        #self.checkerboard_draw_event(width/2, height/3, drawing_area.cairo_create())
-        #drawing_area.add(image)
 
         drawLabel = Gtk.Label("Click on right/left button mouse for move Pedro...")
         drawing_area.add(drawLabel)
 
-        lockLabel = Gtk.Label("Lock servo:")
-        lock1 = Gtk.CheckButton("Servo 1")
-        lock1.connect("toggled", self.on_lock_servo1)
-        lock2 = Gtk.CheckButton("Servo 2")
-        lock2.connect("toggled", self.on_lock_servo2)
-        lock3 = Gtk.CheckButton("Servo 3")
-        lock3.connect("toggled", self.on_lock_servo3)
-        lock4 = Gtk.CheckButton("Servo 4")
-        lock4.connect("toggled", self.on_lock_servo4)
-        boxLockH.pack_start(lockLabel, False, False, 5)
-        boxLockH.pack_start(lock1, False, False, 5)
-        boxLockH.pack_start(lock2, False, False, 5)
-        boxLockH.pack_start(lock3, False, False, 5)
-        boxLockH.pack_start(lock4, False, False, 5)
-        
+	global drawingarea
+	drawingarea = Gtk.DrawingArea()
+	drawingarea.connect('draw', self.draw)
+	
+	drawing_event_box = Gtk.EventBox()		#	Needed to grab mouse click events.
+	drawing_event_box.add(drawingarea)
+	drawing_event_box.connect('button-press-event', self.mouse_pressed)
+	drawing_event_box.connect('motion-notify-event', self.mouse_dragged)
+
+
         frameDraw = Gtk.Frame()
-        frameDraw.add(drawing_area)
+        frameDraw.add(drawing_event_box)
 
         boxH = Gtk.HBox()
         boxV1 = Gtk.VBox()
@@ -584,12 +482,7 @@ class Pedro(Gtk.Window):
 
         boxV1.pack_start(boxH, True, True, 10)
 
-        boxHLock = Gtk.HBox()
-        boxHLock.pack_start(boxLockH, False, False, 10)
-
-        #boxH.pack_start(lock, False, False, 10)
         boxVdraw.pack_start(boxV1, True, True, 0)
-        boxVdraw.pack_start(boxHLock, False, False, 0)
         boxVdraw.pack_start(boxV2, False, False, 0)
 
         boxV.pack_start(boxVdraw, True, True, 10)
@@ -599,6 +492,161 @@ class Pedro(Gtk.Window):
         self.add(boxV)
         global initApp
         initApp = True
+
+
+#=======================================
+# For cairo
+#=======================================
+    # ---------------------------------
+    # draw
+    # ---------------------------------
+    def draw(self, da, ctx):
+	ctx.set_source_rgb(0, 0, 0)			#	Set our color to black
+	ctx.set_line_width(SIZE / 20)			#	Set line width
+	ctx.set_line_join(cairo.LINE_JOIN_ROUND)	#	Set our line end shape
+	
+	self.draw_pedro(ctx)
+
+    # ---------------------------------
+    # draw_pedro
+    # ---------------------------------
+    def draw_pedro(self, ctx):
+
+	global originX
+	global originY
+	global forearm
+	global hand
+	global mXL
+	global mYL
+	global mXR
+	global mYR
+	
+		# Base
+	#ctx.save()
+	#ctx.rotate(base)			# 	rotate everything that comes next
+	ctx.rectangle(SIZE,5*SIZE,SIZE,-SIZE)
+			
+		# Forearm	ctx.save()										# 	Save initial transformations: translations, rotations etc
+	ctx.translate(1.5*SIZE, 4*SIZE) 				#	Move origin to top and middle of base rectangle
+	if not useIk and isForearm:									#	check if we are rotating the forearm.
+		originX = 1.5*SIZE							#	unTranslated coordinates of top middle of base rectangle
+		originY = 4*SIZE							#	so we can calculate the angle of click position
+
+		forearm = atan2(mYL-originY, mXL-originX)	#	get angle from vector click position and origin
+		forearm += (pi/2)							# 	the forearm initial position is 90 degrees
+		
+	ctx.rotate(forearm)								# 	rotate everything that comes next
+	ctx.rectangle(-0.25*SIZE,0,0.5*SIZE,-2*SIZE)	# 	Draw forearm rectangle.
+	if not useIk: ctx.rectangle(0 , -4*SIZE, 0.05*SIZE,0.05*SIZE)	# 	Draw a small rectangle showing us current Angle.
+	
+		# Hand
+	ctx.save()										#	Save previous rotations, so we don't rotate the forearm again.
+	ctx.translate(0,-2*SIZE)						#	Move origin to top and middle of Forearm rectangle
+	if not useIk and not isForearm:								#	check if we are rotating the hand.
+		originX = 1.5*SIZE + (2*SIZE)*cos(forearm - (pi/2))	#	unTranslated coordinates of top middle of base rectangle
+		originY = 4*SIZE   + (2*SIZE)*sin(forearm - (pi/2))	
+		
+		hand = atan2(mYR-originY,
+					 mXR-originX)
+		hand += (pi/2)
+		hand -= forearm								#	We remove the forearm rotation so tha hand rotate independantly.
+	
+	ctx.rotate(hand)
+	ctx.rectangle(-0.25*SIZE, 0,0.5*SIZE,-SIZE)
+	if not useIk: ctx.rectangle(0 ,-2*SIZE, 0.05*SIZE,0.05*SIZE)
+	ctx.stroke()									#	Draw all previous shapes.
+		
+		# End Point
+	ctx.save()										#	We draw the end point triangles manually
+	ctx.translate(0,-SIZE)
+	ctx.new_path()
+	
+	ctx.move_to(	-0.2*SIZE, 0)
+	ctx.rel_line_to(0.15*SIZE, -0.4*SIZE)
+	ctx.rel_line_to(0		 ,  0.4*SIZE)
+	ctx.close_path()	
+	
+	ctx.move_to(	  0.2*SIZE, 0)
+	ctx.rel_line_to(-0.15*SIZE, -0.4*SIZE)
+	ctx.rel_line_to(0		  ,  0.4*SIZE)
+	ctx.close_path()
+	ctx.stroke()
+	
+	ctx.restore()									#	Restore all previous transformations, for each save() a restore()
+	ctx.restore()
+	ctx.restore()
+	
+	ctx.rectangle(mXL, mYL,0.05*SIZE,0.05*SIZE)
+	ctx.rectangle(1.5*SIZE+r, 
+				  4*SIZE-Y,
+				  0.05*SIZE,0.05*SIZE)
+	ctx.stroke()									#	Draw all previous shapes.
+	
+	if useIk:
+		ctx.set_dash([SIZE / 4.0, SIZE / 4.0], 0)
+		ctx.arc(0,0,length_Forearm+length_Hand+length_EndPoint,0, pi/2)
+		ctx.stroke()
+		c = length_Forearm-length_EndPoint-length_Hand
+		ctx.arc(0,0,sqrt(c*c-Y*Y),0, pi/2)
+		ctx.stroke()
+	
+	print('Base: ' + str(int(degrees(base)))+' Forearm: '+str(int(degrees(forearm)))+ ' Hand: '+ str(int(degrees(hand))))	#	print the angles in degrees, so we can send to servo.
+	
+    # ---------------------------------
+    # mouse_pressed
+    # ---------------------------------
+    def mouse_pressed(self, widget, e):
+	global isForearm
+	isForearm = (e.button == 1)		# Rotate forearm if the left mouse button is clicked.
+	
+    # ---------------------------------
+    # mouse_dragged
+    # ---------------------------------
+    def mouse_dragged(self, widget, e):
+	global mXL, mYL
+	global mXR, mYR
+	
+	if useIk: 
+		mXL=e.x
+		mYL=e.y
+		self.xyzToServoAngles(mXL, mYL, 0.1*SIZE)
+	else:
+		if isForearm:				#	Grab click positions.
+			mXL = e.x
+			mYL = e.y
+		else :
+			mXR = e.x
+			mYR = e.y
+		
+	drawingarea.queue_draw()	#	Redraw eerything if mouse is dragged.
+
+
+	# Inverse Kinematics:
+	# From Cartesian to Servo Angles
+    # ---------------------------------
+    # xyzToServoAngles
+    # ---------------------------------
+    def xyzToServoAngles(self, x, y, z):
+	global base, forearm, hand,r, Y
+	a = length_Forearm					# Lenght of Forearm
+	b = length_Hand + length_EndPoint		# Length of Hand
+	r = sqrt(x*x + y*y)
+	R = sqrt(r*r + z*z)
+	Y = z
+	print('r: '+str(r))
+	print('R: '+str(R))
+	if R > (a-b) and r < (a+b) and R < (a+b): # 
+		base = atan2(y,x)
+		forearm = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) +pi/2
+		hand = -acos((a*a + b*b - R*R)/(2*a*b)) + pi
+	else:
+		print('Out of reach !!!')
+		#r = clip(R, 0, a+b)
+		#R = clip(r,0, a+b)
+
+#=======================================
+
+
 
     # ---------------------------------
     # checkerboard_draw_event
