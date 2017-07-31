@@ -12,7 +12,9 @@ Height = 5*SIZE
 length_Forearm = 2*SIZE
 length_Hand = SIZE
 length_EndPoint = 0.4*SIZE
-Y = 0.5*SIZE
+Y = 0*SIZE
+d = length_Forearm+length_Hand+length_EndPoint
+c = length_Forearm-length_EndPoint-length_Hand
 r = 1
 R = 1
 
@@ -46,9 +48,10 @@ def draw(da, ctx):
         
     if useIk:
         ctx.set_dash([SIZE / 4.0, SIZE / 4.0], 0)
-        ctx.arc(OriginX,OriginY,length_Forearm+length_Hand+length_EndPoint,pi, 2*pi)
+        
+        if (d*d-Y*Y)>=0: ctx.arc(OriginX,OriginY,sqrt(d*d-Y*Y),pi, 2*pi)
         ctx.stroke()
-        c = length_Forearm-length_EndPoint-length_Hand
+	
         if (c*c-Y*Y)>=0: ctx.arc(OriginX,OriginY,sqrt(c*c-Y*Y),pi, 2*pi)
         ctx.stroke()
 
@@ -149,14 +152,12 @@ def draw_pedro_top(ctx):
 	
     dx = mXL - OriginX
     dy = mYL - OriginY
-    dist = min([sqrt(dx*dx + dy*dy), length_Forearm+length_Hand+length_EndPoint])
-
-    c = length_Forearm-length_EndPoint-length_Hand
-    dist = max(dist, sqrt(fabs(c*c-Y*Y)))
-    
-    ctx.rectangle(-0.25*SIZE,-0.5*SIZE,0.5*SIZE,-dist+0.5*SIZE)
-    
-    ctx.restore()
+	
+    if (d*d-Y*Y)>=0: dist = min([sqrt(dx*dx + dy*dy), sqrt(d*d-Y*Y)])
+    if (c*c-Y*Y)>=0: 
+        dist = max([dist, sqrt(c*c-Y*Y)])
+        ctx.rectangle(-0.25*SIZE,-0.5*SIZE,0.5*SIZE,-dist+0.5*SIZE)    
+        ctx.restore()
     
     ctx.rectangle(mXL, mYL,0.05*SIZE,0.05*SIZE)
     ctx.stroke()                                    #   Draw all previous shapes.
@@ -203,7 +204,7 @@ def xyzToServoAngles(x, y, z):
     r = sqrt(x*x + y*y)
     R = sqrt(r*r + z*z)
     Y = z
-    if R > (a-b) and r < (a+b) and R < (a+b): # 
+    if Y>=0 and Y<= d and R > (a-b) and r < (a+b) and R < (a+b): # 
         base = -atan2(y,x)
         forearm = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) +pi/2
         hand = -acos((a*a + b*b - R*R)/(2*a*b)) + pi
