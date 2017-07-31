@@ -2,8 +2,7 @@
 
 import cairo
 import gi
-from math import pi, atan2, sin, cos, degrees, acos, asin, sqrt
-from numpy import clip
+from math import pi, atan2, sin, cos, degrees, acos, asin, sqrt, fabs
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
 
@@ -13,8 +12,8 @@ Height = 5*SIZE
 length_Forearm = 2*SIZE
 length_Hand = SIZE
 length_EndPoint = 0.4*SIZE
+Y = 0.5*SIZE
 r = 1
-Y = 0
 R = 1
 
 global drawingarea
@@ -50,7 +49,7 @@ def draw(da, ctx):
         ctx.arc(OriginX,OriginY,length_Forearm+length_Hand+length_EndPoint,pi, 2*pi)
         ctx.stroke()
         c = length_Forearm-length_EndPoint-length_Hand
-        ctx.arc(OriginX,OriginY,sqrt(c*c-Y*Y),pi, 2*pi)
+        if (c*c-Y*Y)>=0: ctx.arc(OriginX,OriginY,sqrt(c*c-Y*Y),pi, 2*pi)
         ctx.stroke()
 
     print('Base: ' + str(int(degrees(base)))+' Forearm: '+str(int(degrees(forearm)))+ ' Hand: '+ str(int(degrees(hand))))   #   print the angles in degrees, so we can send to servo.
@@ -153,7 +152,7 @@ def draw_pedro_top(ctx):
     dist = min([sqrt(dx*dx + dy*dy), length_Forearm+length_Hand+length_EndPoint])
 
     c = length_Forearm-length_EndPoint-length_Hand
-    dist = max(dist, sqrt(c*c-Y*Y))
+    dist = max(dist, sqrt(fabs(c*c-Y*Y)))
     
     ctx.rectangle(-0.25*SIZE,-0.5*SIZE,0.5*SIZE,-dist+0.5*SIZE)
     
@@ -180,7 +179,7 @@ def mouse_dragged(self, e):
     if useIk: 
         mXL=e.x
         mYL=e.y
-        xyzToServoAngles(mXL-OriginX, mYL-OriginY, 0.1*SIZE)
+        xyzToServoAngles(mXL-OriginX, mYL-OriginY, Y)
     else:
         if isForearm:               #   Grab click positions.
             mXL = e.x
