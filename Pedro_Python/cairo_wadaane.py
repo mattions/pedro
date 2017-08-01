@@ -2,21 +2,33 @@
 
 import cairo
 import gi
-from math import pi, atan2, sin, cos, degrees, acos, asin, sqrt, fabs
+from math import pi, atan2, sin, cos, degrees, radians, acos, asin, sqrt, fabs
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk
 
 SIZE = 100
-Width = 12*SIZE
-Height = 5*SIZE
-length_Forearm = 2*SIZE
+TXT_SIZE = SIZE/5
 length_Hand = SIZE
 length_EndPoint = 0.4*SIZE
-Y = 0*SIZE
+length_Forearm = 2*SIZE
+Z = 1*SIZE
 d = length_Forearm+length_Hand+length_EndPoint
 c = length_Forearm-length_EndPoint-length_Hand
 r = 1
 R = 1
+
+
+OriginSideX = d - 0.5*SIZE+SIZE
+OriginSideY = d
+OriginTopX = d+SIZE
+OriginTopY = 2*d
+
+originForearmX = OriginSideX+1.5*SIZE
+originForearmY = OriginSideY-SIZE
+
+Width = 2*OriginTopX
+Height = 2*OriginSideY
+
 
 global drawingarea
 mXL = 0
@@ -24,15 +36,11 @@ mYL = 0
 mXR = 0
 mYR = 0
 isForearm = True
-base = 0
-forearm = 0
-hand = 0
-originX = 0
-originY = 0
+base = pi/2
+forearm = -pi/2
+hand = pi*3/4
 
-OriginX = 0
-OriginY = 5*SIZE
-
+outOfReach = False
 useIk = True
 
 # ---------------------------------
@@ -45,48 +53,49 @@ def draw(da, ctx):
     
     draw_pedro_side(ctx)
     draw_pedro_top(ctx)
+    draw_text(ctx)
         
     if useIk:
         ctx.set_dash([SIZE / 4.0, SIZE / 4.0], 0)
-        
-        if (d*d-Y*Y)>=0: ctx.arc(OriginX,OriginY,sqrt(d*d-Y*Y),pi, 2*pi)
+        ctx.new_path()
+        if (d*d-Z*Z)>=0: ctx.arc(OriginTopX,OriginTopY,sqrt(d*d-Z*Z),pi, 2*pi)
         ctx.stroke()
-	
-        if (c*c-Y*Y)>=0: ctx.arc(OriginX,OriginY,sqrt(c*c-Y*Y),pi, 2*pi)
+    
+        if (c*c-Z*Z)>=0: ctx.arc(OriginTopX,OriginTopY,sqrt(c*c-Z*Z),pi, 2*pi)
         ctx.stroke()
 
-    print('Base: ' + str(int(degrees(base)))+' Forearm: '+str(int(degrees(forearm)))+ ' Hand: '+ str(int(degrees(hand))))   #   print the angles in degrees, so we can send to servo.
     
+def draw_text(ctx):
+     
+    ctx.select_font_face("Purisa", cairo.FONT_SLANT_NORMAL, 
+        cairo.FONT_WEIGHT_NORMAL)
+    ctx.set_font_size(TXT_SIZE)
+    ctx.move_to(0.01*SIZE, TXT_SIZE)
+    ctx.show_text('Base: ' +        str(-int(degrees(base))+90))
+    ctx.move_to(0.01*SIZE, 2*TXT_SIZE)
+    ctx.show_text('Forearm: '+      str(int(degrees(forearm)+90)))
+    ctx.move_to(0.01*SIZE, 3*TXT_SIZE)
+    ctx.show_text('Hand: '+         str(int(-degrees(hand)+135)))
+    if outOfReach:
+        ctx.move_to(0.01*SIZE, 4*TXT_SIZE)
+        ctx.show_text('OUT OF REACH !')
 
 # ---------------------------------
 # draw_pedro_side
 # ---------------------------------
 def draw_pedro_side(ctx):
 
-    global originX
-    global originY
     global forearm
-    global hand
-    global mXL
-    global mYL
-    global mXR
-    global mYR
-    
-    global OriginX, OriginY
-    OriginX = 0
-    OriginY = 5*SIZE	
+    global hand 
     
         # Base
     ctx.save()
-    ctx.rectangle(OriginX,OriginY,SIZE,-SIZE)
+    ctx.rectangle(OriginSideX,OriginSideY,SIZE,-SIZE)
             
         # Forearm   ctx.save()                                      #   Save initial transformations: translations, rotations etc
-    ctx.translate(OriginX+0.5*SIZE,OriginY-SIZE)                 #   Move origin to top and middle of base rectangle
+    ctx.translate(OriginSideX+0.5*SIZE,OriginSideY-SIZE)                 #   Move origin to top and middle of base rectangle
     if not useIk and isForearm:                                 #   check if we are rotating the forearm.
-        originX = 1.5*SIZE                          #   unTranslated coordinates of top middle of base rectangle
-        originY = 4*SIZE                            #   so we can calculate the angle of click position
-
-        forearm = atan2(mYL-originY, mXL-originX)   #   get angle from vector click position and origin
+        forearm = atan2(mYL-originForearmY, mXL-originForearmX)   #   get angle from vector click position and origin
         forearm += (pi/2)                           #   the forearm initial position is 90 degrees
         
     ctx.rotate(forearm)                             #   rotate everything that comes next
@@ -97,8 +106,8 @@ def draw_pedro_side(ctx):
     ctx.save()                                      #   Save previous rotations, so we don't rotate the forearm again.
     ctx.translate(0,-2*SIZE)                        #   Move origin to top and middle of Forearm rectangle
     if not useIk and not isForearm:                             #   check if we are rotating the hand.
-        originX = 1.5*SIZE + (2*SIZE)*cos(forearm - (pi/2)) #   unTranslated coordinates of top middle of base rectangle
-        originY = 4*SIZE   + (2*SIZE)*sin(forearm - (pi/2)) 
+        originX = originForearmX + (length_Forearm)*cos(forearm - (pi/2)) #   unTranslated coordinates of top middle of base rectangle
+        originY = originForearmY + (length_Forearm)*sin(forearm - (pi/2)) 
         
         hand = atan2(mYR-originY,
                      mXR-originX)
@@ -129,8 +138,8 @@ def draw_pedro_side(ctx):
     ctx.restore()                                   #   Restore all previous transformations, for each save() a restore()
     ctx.restore()
     ctx.restore()
-	
-    ctx.rectangle(OriginX+0.5*SIZE+r, OriginY-SIZE-Y, 0.05*SIZE,0.05*SIZE)
+    
+    ctx.rectangle(OriginSideX+0.5*SIZE+r, OriginSideY-SIZE-Z, 0.05*SIZE,0.05*SIZE)
     ctx.stroke()                                    #   Draw all previous shapes.
     
 
@@ -138,27 +147,24 @@ def draw_pedro_side(ctx):
 # draw_pedro_top
 # ---------------------------------
 def draw_pedro_top(ctx):
-
-    global OriginX, OriginY
-    OriginX = 8*SIZE
-    OriginY = 5*SIZE
     
         # Base
     ctx.save()
-    ctx.translate(OriginX,OriginY) #+0.5*SIZE
-    ctx.rotate(-base+pi/2)
+    ctx.translate(OriginTopX,OriginTopY)
+    ctx.rotate(base)
     
     ctx.rectangle(-0.5*SIZE,0.5*SIZE,SIZE,-SIZE)
-	
-    dx = mXL - OriginX
-    dy = mYL - OriginY
-	
-    if (d*d-Y*Y)>=0: dist = min([sqrt(dx*dx + dy*dy), sqrt(d*d-Y*Y)])
-    if (c*c-Y*Y)>=0: 
-        dist = max([dist, sqrt(c*c-Y*Y)])
-        ctx.rectangle(-0.25*SIZE,-0.5*SIZE,0.5*SIZE,-dist+0.5*SIZE)    
-        ctx.restore()
     
+    dx = mXL - OriginTopX
+    dy = mYL - OriginTopY
+    
+    if (d*d-Z*Z)>=0: dist = min([sqrt(dx*dx + dy*dy), sqrt(d*d-Z*Z)])
+    if (c*c-Z*Z)>=0: 
+        dist = max([dist, sqrt(c*c-Z*Z)])
+        
+    ctx.rectangle(-0.25*SIZE,-0.5*SIZE,0.5*SIZE,-dist+0.5*SIZE)    
+        
+    ctx.restore()
     ctx.rectangle(mXL, mYL,0.05*SIZE,0.05*SIZE)
     ctx.stroke()                                    #   Draw all previous shapes.
 
@@ -180,7 +186,7 @@ def mouse_dragged(self, e):
     if useIk: 
         mXL=e.x
         mYL=e.y
-        xyzToServoAngles(mXL-OriginX, mYL-OriginY, Y)
+        xyzToServoAngles(mXL-OriginTopX, mYL-OriginTopY, Z)
     else:
         if isForearm:               #   Grab click positions.
             mXL = e.x
@@ -198,19 +204,41 @@ def mouse_dragged(self, e):
 # xyzToServoAngles
 # ---------------------------------
 def xyzToServoAngles(x, y, z):
-    global base, forearm, hand,r, Y
+    global base, forearm, hand,r, Z
     a = length_Forearm                  # Lenght of Forearm
     b = length_Hand + length_EndPoint       # Length of Hand
     r = sqrt(x*x + y*y)
     R = sqrt(r*r + z*z)
-    Y = z
-    if Y>=0 and Y<= d and R > (a-b) and r < (a+b) and R < (a+b): # 
-        base = -atan2(y,x)
+    Z = z
+    global outOfReach
+    outOfReach = False
+    if Z>=0 and Z<= d and R > (a-b) and r < (a+b) and R < (a+b): # 
+        base = atan2(y,x)+pi/2
         forearm = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) +pi/2
         hand = -acos((a*a + b*b - R*R)/(2*a*b)) + pi
-    else:
-        print('Out of reach !!!')
+    
+        if base >pi/2 and base <pi:
+            base = pi/2
+            outOfReach = True
+        elif base <= -pi/2 or base >pi:
+            base = -pi/2
+            outOfReach = True
 
+        if forearm >pi/2 and forearm <pi:
+            forearm = pi/2
+            outOfReach = True
+        elif forearm <= -pi/2 or forearm >pi:
+            forearm = -pi/2
+            outOfReach = True
+
+        if hand >pi*3/4:
+            hand = pi*3/4
+            outOfReach = True
+        elif hand <= 0:
+            hand = 0
+            outOfReach = True
+    else:
+        outOfReach = True
         
 def main():
     win = Gtk.Window()
