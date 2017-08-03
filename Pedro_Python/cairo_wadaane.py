@@ -14,7 +14,7 @@ length_Hand = SIZE
 length_EndPoint = 0.4*SIZE
 length_Forearm = 2*SIZE
 
-Z = 1 * SIZE
+Z = 1*SIZE
 d = length_Forearm + length_Hand + length_EndPoint
 c = length_Forearm - length_Hand - length_EndPoint
 r = 1
@@ -29,7 +29,7 @@ OriginSideY = d + SIZE
 OriginTopX = d + SIZE
 OriginTopY = d + SIZE + OriginSideY
 
-Width = 2 * OriginTopX
+Width = 2*OriginTopX
 Height = OriginTopY + SIZE
 
 originForearmX = OriginSideX 
@@ -50,7 +50,7 @@ outOfReach = False
 # ---------------------------------
 def draw(da, ctx):
     ctx.set_source_rgb(0, 0, 0)
-    ctx.set_line_width(SIZE / 20)
+    ctx.set_line_width(SIZE/20)
     ctx.set_line_join(cairo.LINE_JOIN_ROUND)  
     
     draw_extra(ctx)
@@ -68,9 +68,9 @@ def draw_extra(ctx):
     ctx.stroke()
     
     ctx.new_path()
-    ctx.set_dash([SIZE / 4.0, SIZE / 4.0], 0)
-    if (d*d-Z*Z)>=0: ctx.arc(OriginTopX,OriginTopY,sqrt(d*d-Z*Z),pi, 2*pi)
-    if (c*c-Z*Z)>=0: ctx.arc(OriginTopX,OriginTopY,sqrt(c*c-Z*Z),pi, 2*pi)
+    ctx.set_dash([SIZE/4.0, SIZE/4.0], 0)
+    if (d*d - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(d*d-Z*Z),pi, 2*pi)
+    if (c*c - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(c*c-Z*Z),pi, 2*pi)
     ctx.close_path()
     ctx.stroke()
 
@@ -90,14 +90,14 @@ def draw_text(ctx):
             cairo.FONT_WEIGHT_NORMAL)
     ctx.set_font_size(TXT_SIZE)
     ctx.move_to(0.01*SIZE, TXT_SIZE)
-    ctx.show_text('Base: ' +        str(-int(degrees(base))+90))
+    ctx.show_text('Base: ' + str(-int(degrees(base)) + 90))
     ctx.move_to(0.01*SIZE, 2*TXT_SIZE)
-    ctx.show_text('Forearm: '+      str(int(degrees(forearm))))
+    ctx.show_text('Forearm: '+ str(int(degrees(forearm))))
     ctx.move_to(0.01*SIZE, 3*TXT_SIZE)
-    ctx.show_text('Hand: '+         str(int(degrees(-hand))))
+    ctx.show_text('Hand: '+ str(int(degrees(-hand))))
     if outOfReach:        
         ctx.set_source_rgb(1, 0, 0) 
-        ctx.move_to(-3*TXT_SIZE+Width/2, 0.5*SIZE+Height/2)
+        ctx.move_to(-3*TXT_SIZE + Width/2, 0.5*SIZE + Height/2)
         ctx.show_text('OUT OF REACH !!!')
 
 # ---------------------------------
@@ -106,47 +106,47 @@ def draw_text(ctx):
 def draw_pedro_side(ctx):
 
         # Base
-    ctx.rectangle(OriginSideX-0.5*SIZE,OriginSideY+0.5*SIZE,SIZE,-SIZE)
-    ctx.rectangle(OriginSideX, OriginSideY, 0.05*SIZE,0.05*SIZE)
+    ctx.rectangle(OriginSideX - 0.5*SIZE, OriginSideY + 0.5*SIZE, SIZE, -SIZE)
+    ctx.rectangle(OriginSideX, OriginSideY, 0.05*SIZE, 0.05*SIZE)
     ctx.stroke()
     
         # Forearm
     ctx.save()
-    ctx.translate(originForearmX,originForearmY)
-    ctx.rectangle(0, 0, 0.05*SIZE,0.05*SIZE)
+    ctx.translate(originForearmX, originForearmY)
+    ctx.rectangle(0, 0, 0.05*SIZE, 0.05*SIZE)
     ctx.rotate(forearm)                             
-    ctx.rectangle(0,-0.25*SIZE,-2*SIZE, 0.5*SIZE)
+    ctx.rectangle(0, -0.25*SIZE, -2*SIZE, 0.5*SIZE)
     ctx.stroke()
     ctx.restore()
     
     
         # Hand
     ctx.save()    
-    ctx.translate(originHandX,originHandY)    
-    ctx.rectangle(0, 0, 0.05*SIZE,0.05*SIZE)
+    ctx.translate(originHandX, originHandY)    
+    ctx.rectangle(0, 0, 0.05*SIZE, 0.05*SIZE)
     ctx.rotate(forearm)
     ctx.stroke()
     
     ctx.rotate(hand)
     ctx.new_path()
-    ctx.move_to(-0.25*SIZE*cos(-pi/4),  0.25*SIZE*sin(-pi/4))
-    ctx.rel_line_to(0.5*SIZE*cos(-pi/4),  -0.5*SIZE*sin(-pi/4))
-    ctx.rel_line_to(SIZE*cos(-pi/4),  SIZE*sin(-pi/4))
-    ctx.rel_line_to(-0.5*SIZE*cos(-pi/4),  0.5*SIZE*sin(-pi/4))
+    ctx.move_to(-0.25*SIZE*cos(-pi/4), 0.25*SIZE*sin(-pi/4))
+    ctx.rel_line_to(0.5*SIZE*cos(-pi/4), -0.5*SIZE*sin(-pi/4))
+    ctx.rel_line_to(SIZE*cos(-pi/4), SIZE*sin(-pi/4))
+    ctx.rel_line_to(-0.5*SIZE*cos(-pi/4), 0.5*SIZE*sin(-pi/4))
     ctx.close_path()    
     ctx.stroke()    
         
         # # End Point
     ctx.rotate(-pi/4)
-    ctx.translate(SIZE,0)
+    ctx.translate(SIZE, 0)
     ctx.new_path()
-    ctx.move_to(    0,          -0.2*SIZE)
-    ctx.rel_line_to(0.4*SIZE,  0.15*SIZE)
-    ctx.rel_line_to(  -0.4*SIZE, 0        )
+    ctx.move_to(0, -0.2*SIZE)
+    ctx.rel_line_to(0.4*SIZE, 0.15*SIZE)
+    ctx.rel_line_to(-0.4*SIZE, 0)
     ctx.close_path()    
-    ctx.move_to(    0,          0.2*SIZE)
-    ctx.rel_line_to(0.4*SIZE,  -0.15*SIZE)
-    ctx.rel_line_to(  -0.4*SIZE, 0        )
+    ctx.move_to(0, 0.2*SIZE)
+    ctx.rel_line_to(0.4*SIZE, -0.15*SIZE)
+    ctx.rel_line_to(-0.4*SIZE, 0)
     ctx.close_path()    
     ctx.stroke()    
     ctx.restore() 
@@ -158,19 +158,20 @@ def draw_pedro_side(ctx):
 def draw_pedro_top(ctx):
     # Base
     ctx.save()
-    ctx.translate(OriginTopX,OriginTopY)
+    ctx.translate(OriginTopX, OriginTopY)
     ctx.rotate(base)
     
-    ctx.rectangle(-0.5*SIZE,0.5*SIZE,SIZE,-SIZE)
+    ctx.rectangle(-0.5*SIZE, 0.5*SIZE, SIZE, -SIZE)
     
     dx = mXL - OriginTopX
     dy = mYL - OriginTopY
     
-    if (d*d-Z*Z)>=0: dist = min([sqrt(dx*dx + dy*dy), sqrt(d*d-Z*Z)])
-    if (c*c-Z*Z)>=0: 
+    if (d*d - Z*Z)>=0: 
+        dist = min([sqrt(dx*dx + dy*dy), sqrt(d*d-Z*Z)])
+    if (c*c - Z*Z)>=0: 
         dist = max([dist, sqrt(c*c-Z*Z)])
         
-    ctx.rectangle(-0.25*SIZE,-0.5*SIZE,0.5*SIZE,-dist+0.5*SIZE)    
+    ctx.rectangle(-0.25*SIZE, -0.5*SIZE, 0.5*SIZE, -dist + 0.5*SIZE)    
 
     ctx.restore()
     ctx.stroke()
@@ -194,20 +195,20 @@ def mouse_dragged(self, e):
     if e.y > Height/2: 
         mXL = e.x
         mYL = e.y
-        xyzToServoAngles(0,mXL-OriginTopX, mYL-OriginTopY, Z)
+        xyzToServoAngles(0, mXL - OriginTopX, mYL - OriginTopY, Z)
     else:
         if isForearm:
             mXL = e.x
             mYL = e.y
-            xyzToServoAngles(1,mXL-originForearmX, mYL-originForearmY, Z)
+            xyzToServoAngles(1, mXL - originForearmX, mYL - originForearmY, Z)
             
         else :
             mXR = e.x
             mYR = e.y
-            xyzToServoAngles(2,mXR-originHandX, mYR-originHandY, Z)
+            xyzToServoAngles(2, mXR - originHandX, mYR - originHandY, Z)
         
-    originHandX = originForearmX + (length_Forearm)*cos(forearm-pi)
-    originHandY = originForearmY + (length_Forearm)*sin(forearm-pi) 
+    originHandX = originForearmX + (length_Forearm)*cos(forearm - pi)
+    originHandY = originForearmY + (length_Forearm)*sin(forearm - pi) 
     drawingarea.queue_draw()
 
 
@@ -228,21 +229,21 @@ def xyzToServoAngles(choice,x, y, z):
         R = sqrt(r*r + z*z)
         Z = z
     
-        if Z>=0 and Z<= d and R > (a-b) and r < (a+b) and R < (a+b):
-            base     = atan2(y,x)+pi/2
+        if Z >= 0 and Z <= d and R > (a-b) and r < (a+b) and R < (a+b):
+            base     = atan2(y,x) + pi/2
             forearm  = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) + pi
             hand     = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
         else:
             outOfReach = True
     
     elif choice == 1:
-        forearm = atan2(y,x)+pi
+        forearm = atan2(y, x) + pi
     
     elif choice == 2:
-        hand = atan2(y,x)  +pi/4  -forearm        
+        hand = atan2(y, x) + pi/4 - forearm        
     
     # Set limits
-    if base >pi/2 and base <pi:
+    if base > pi/2 and base < pi:
         base = pi/2
         outOfReach = True
     elif base <= -pi/2 or base >pi:
@@ -252,11 +253,11 @@ def xyzToServoAngles(choice,x, y, z):
     if forearm >= pi and forearm < pi*3/2:
         forearm = pi
         outOfReach = True
-    elif forearm <= 0 or forearm >pi*3/2:
+    elif forearm <= 0 or forearm > pi*3/2:
         forearm = 0
         outOfReach = True
 
-    if forearm >pi/4:
+    if forearm > pi/4:
         if hand < -pi or hand > pi/2:
             hand = -pi
             outOfReach = True
@@ -269,7 +270,7 @@ def xyzToServoAngles(choice,x, y, z):
             hand = -pi/4
             outOfReach = True
         elif hand > 0 and hand > pi/2:
-            hand = -pi-forearm
+            hand = -pi - forearm
             outOfReach = True
         hand += pi/4
         
