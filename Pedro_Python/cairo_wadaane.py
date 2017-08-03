@@ -8,42 +8,42 @@ from gi.repository import Gtk, Gdk
 
 global drawingarea
 
-SIZE            = 75
-TXT_SIZE        = SIZE/5
-length_Hand     = SIZE
+SIZE = 75
+TXT_SIZE = SIZE/5
+length_Hand = SIZE
 length_EndPoint = 0.4*SIZE
-length_Forearm  = 2*SIZE
+length_Forearm = 2*SIZE
 
-Z               = 1 * SIZE
-d               = length_Forearm + length_Hand + length_EndPoint
-c               = length_Forearm - length_Hand - length_EndPoint
-r               = 1
+Z = 1 * SIZE
+d = length_Forearm + length_Hand + length_EndPoint
+c = length_Forearm - length_Hand - length_EndPoint
+r = 1
 
-mXL             = 0
-mYL             = 0
-mXR             = 0
-mYR             = 0
+mXL = 0
+mYL = 0
+mXR = 0
+mYR = 0
 
-OriginSideX     = d + SIZE
-OriginSideY     = d + SIZE
-OriginTopX      = d + SIZE
-OriginTopY      = d + SIZE + OriginSideY
+OriginSideX = d + SIZE
+OriginSideY = d + SIZE
+OriginTopX = d + SIZE
+OriginTopY = d + SIZE + OriginSideY
 
-Width           = 2 * OriginTopX
-Height          = OriginTopY + SIZE
+Width = 2 * OriginTopX
+Height = OriginTopY + SIZE
 
-originForearmX  = OriginSideX 
-originForearmY  = OriginSideY - 0.5*SIZE
-originHandX     = originForearmX - length_Forearm
-originHandY     = originForearmY
+originForearmX = OriginSideX 
+originForearmY = OriginSideY - 0.5*SIZE
+originHandX = originForearmX - length_Forearm
+originHandY = originForearmY
 
 
-base            = pi/2
-forearm         = 0
-hand            = 0
+base = pi/2
+forearm = 0
+hand = 0
 
-isForearm       = True
-outOfReach      = False
+isForearm = True
+outOfReach = False
 
 # ---------------------------------
 # draw
