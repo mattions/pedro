@@ -15,14 +15,18 @@ length_EndPoint = 0.4*SIZE
 length_Forearm = 2*SIZE
 
 Z = 1*SIZE
+Z0 = Z
 d = length_Forearm + length_Hand + length_EndPoint
 c = length_Forearm - length_Hand - length_EndPoint
 r = 1
+r0 = r
 
 mXL = 0
 mYL = 0
 mXR = 0
 mYR = 0
+mXik = 0
+mYik = 0
 
 OriginSideX = d + SIZE
 OriginSideY = d + SIZE
@@ -38,7 +42,7 @@ originHandX = originForearmX - length_Forearm
 originHandY = originForearmY
 
 
-base = pi/2
+base = 0
 forearm = 0
 hand = 0
 
@@ -65,19 +69,24 @@ def draw(da, ctx):
 def draw_extra(ctx):
     ctx.move_to(0, Height/2)
     ctx.rel_line_to(Width, 0)
+    ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
     ctx.stroke()
     
     ctx.new_path()
     ctx.set_dash([SIZE/4.0, SIZE/4.0], 0)
-    if (d*d - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(d*d-Z*Z),pi, 2*pi)
-    if (c*c - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(c*c-Z*Z),pi, 2*pi)
+    if (d*d - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(d*d-Z*Z), pi, 2*pi)
+    if (c*c - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(c*c-Z*Z), pi, 2*pi)
     ctx.close_path()
     ctx.stroke()
 
     ctx.set_dash([], 0)
+    if not outOfReach:
+        global r0, Z0
+        r0 = r
+        Z0 = Z
     ctx.rectangle(
-            OriginSideX + r,
-            OriginSideY - 0.5*SIZE - Z,
+            OriginSideX + r0,
+            OriginSideY - 0.5*SIZE - Z0,
             0.05*SIZE, 0.05*SIZE)
     ctx.stroke()
     
@@ -90,7 +99,7 @@ def draw_text(ctx):
             cairo.FONT_WEIGHT_NORMAL)
     ctx.set_font_size(TXT_SIZE)
     ctx.move_to(0.01*SIZE, TXT_SIZE)
-    ctx.show_text('Base: ' + str(-int(degrees(base)) + 90))
+    ctx.show_text('Base: ' + str(int(degrees(base))))
     ctx.move_to(0.01*SIZE, 2*TXT_SIZE)
     ctx.show_text('Forearm: '+ str(int(degrees(forearm))))
     ctx.move_to(0.01*SIZE, 3*TXT_SIZE)
@@ -162,16 +171,8 @@ def draw_pedro_top(ctx):
     ctx.rotate(base)
     
     ctx.rectangle(-0.5*SIZE, 0.5*SIZE, SIZE, -SIZE)
-    
-    dx = mXL - OriginTopX
-    dy = mYL - OriginTopY
-    
-    if (d*d - Z*Z)>=0: 
-        dist = min([sqrt(dx*dx + dy*dy), sqrt(d*d-Z*Z)])
-    if (c*c - Z*Z)>=0: 
-        dist = max([dist, sqrt(c*c-Z*Z)])
         
-    ctx.rectangle(-0.25*SIZE, -0.5*SIZE, 0.5*SIZE, -dist + 0.5*SIZE)    
+    ctx.rectangle(0, -0.25*SIZE, - r0, 0.5*SIZE)    
 
     ctx.restore()
     ctx.stroke()
@@ -190,14 +191,19 @@ def mouse_pressed(self, e):
 def mouse_dragged(self, e):
     global mXL, mYL
     global mXR, mYR
+    global mXik, mYik
     global originHandX, originHandY
     
     if e.y > Height/2: 
-        mXL = e.x
-        mYL = e.y
-        xyzToServoAngles(0, mXL - OriginTopX, mYL - OriginTopY, Z)
+        mXik = e.x
+        mYik = e.y
+        xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, Z)
     else:
-        if isForearm:
+        if e.x < Width and e.y > 0 and e.x > Width - 1.5*SIZE and e.y < d + 1.5*SIZE:
+            if e.x < Width - 0.5*SIZE and e.y > 0.5*SIZE and e.x > Width - SIZE and e.y < d + 0.5*SIZE:
+                xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, d + 0.5*SIZE - e.y)
+            
+        elif isForearm:
             mXL = e.x
             mYL = e.y
             xyzToServoAngles(1, mXL - originForearmX, mYL - originForearmY, Z)
@@ -226,34 +232,43 @@ def xyzToServoAngles(choice,x, y, z):
         a = length_Forearm
         b = length_Hand + length_EndPoint     
         r = sqrt(x*x + y*y)
+        
+        if r > d:
+            r = d
+        
         R = sqrt(r*r + z*z)
-        Z = z
+        if z <= 0:
+            Z = 0
+        elif z >= d + 0.5*SIZE:
+            z = d + 0.5*SIZE
+        else:
+            Z = z
     
-        if Z >= 0 and Z <= d and R > (a-b) and r < (a+b) and R < (a+b):
-            base     = atan2(y,x) + pi/2
+        if Z >= 0 and Z <= d and R > (a-b) and R < (a+b):
+            base     = atan2(y,x) + pi
             forearm  = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) + pi
             hand     = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
         else:
             outOfReach = True
     
     elif choice == 1:
-        forearm = atan2(y, x) + pi
+        forearm = atan2(y, x) + pi              
     
     elif choice == 2:
-        hand = atan2(y, x) + pi/4 - forearm        
+        hand = atan2(y, x) + pi/4 - forearm    
     
     # Set limits
-    if base > pi/2 and base < pi:
-        base = pi/2
+    if base > pi and base < pi*3/2:
+        base = pi
         outOfReach = True
-    elif base <= -pi/2 or base >pi:
-        base = -pi/2
+    elif base > pi and base > pi*3/2:
+        base = 0
         outOfReach = True
 
     if forearm >= pi and forearm < pi*3/2:
         forearm = pi
         outOfReach = True
-    elif forearm <= 0 or forearm > pi*3/2:
+    elif forearm <= 0 or forearm >= pi*3/2:
         forearm = 0
         outOfReach = True
 
