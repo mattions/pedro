@@ -181,7 +181,8 @@ def draw_text(ctx):
     ctx.show_text('Hand: '+ str(int(degrees(-hand))))
     if outOfReach:        
         ctx.set_source_rgb(1, 0, 0) 
-        ctx.move_to(-3*TXT_SIZE + Width/2, 0.5*SIZE + Height/2)
+        ctx.move_to(0.01*SIZE, 4*TXT_SIZE)
+        #ctx.move_to(-3*TXT_SIZE + Width/2, 0.5*SIZE + Height/2)
         ctx.show_text('OUT OF REACH !!!')
     
 # ---------------------------------
