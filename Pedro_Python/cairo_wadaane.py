@@ -33,7 +33,7 @@ OriginSideY = d + SIZE
 OriginTopX = 2*d + SIZE + OriginSideX
 OriginTopY = d + SIZE
 
-Width = 4*d + 2*SIZE
+Width = 4*d + 3*SIZE
 Height = OriginTopY + SIZE
 
 originForearmX = OriginSideX 
@@ -67,7 +67,7 @@ def draw(da, ctx):
 # draw_extra
 # ---------------------------------
 def draw_extra(ctx):
-    ctx.move_to(Width/2, 0)
+    ctx.move_to(-SIZE +Width/2, 0)
     ctx.rel_line_to(0, Height)
     ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
     ctx.stroke()
