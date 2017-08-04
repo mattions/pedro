@@ -90,6 +90,12 @@ def draw_extra(ctx):
             OriginSideY - 0.5*SIZE - Z0,
             0.05*SIZE, 0.05*SIZE)
         ctx.stroke()
+        
+        ctx.new_path()
+        ctx.move_to(Width - SIZE, OriginSideY - 0.5*SIZE - Z0)
+        ctx.rel_line_to(0.5*SIZE, 0)
+
+        ctx.stroke()
     
 
 # ---------------------------------
