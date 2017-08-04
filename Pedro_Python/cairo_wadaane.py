@@ -28,12 +28,12 @@ mYR = 0
 mXik = 0
 mYik = 0
 
-OriginSideX = d + SIZE
+OriginSideX = d 
 OriginSideY = d + SIZE
-OriginTopX = d + SIZE
-OriginTopY = d + SIZE + OriginSideY
+OriginTopX = 2*d + SIZE + OriginSideX
+OriginTopY = d + SIZE
 
-Width = 2*OriginTopX
+Width = 4*d + 2*SIZE
 Height = OriginTopY + SIZE
 
 originForearmX = OriginSideX 
@@ -67,8 +67,8 @@ def draw(da, ctx):
 # draw_extra
 # ---------------------------------
 def draw_extra(ctx):
-    ctx.move_to(0, Height/2)
-    ctx.rel_line_to(Width, 0)
+    ctx.move_to(Width/2, 0)
+    ctx.rel_line_to(0, Height)
     ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
     ctx.stroke()
     
@@ -195,13 +195,13 @@ def mouse_dragged(self, e):
     global originHandX, originHandY
     global outOfReach
     
-    if e.y > Height/2: 
+    if e.x > Width/2 and e.x < Width - 1.5*SIZE: 
         mXik = e.x
         mYik = e.y
         xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, Z)
     else:
-        if e.x < Width and e.y > 0 and e.x > Width - 1.5*SIZE and e.y < d + 1.5*SIZE:
-            if e.x < Width - 0.5*SIZE and e.y > 0.5*SIZE and e.x > Width - SIZE and e.y < d + 0.5*SIZE:
+        if e.x > Width - 1.5*SIZE :
+            if e.x < Width - 0.5*SIZE and e.x > Width - SIZE and e.y > 0.5*SIZE and e.y < d + 0.5*SIZE:
                 xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, d + 0.5*SIZE - e.y)
             else:
                 outOfReach = True
