@@ -18,7 +18,7 @@ Z = 1*SIZE
 Z0 = Z
 d = length_Forearm + length_Hand + length_EndPoint
 c = length_Forearm - length_Hand - length_EndPoint
-r = 1
+r = length_Forearm
 r0 = r
 
 mXL = 0
@@ -48,6 +48,7 @@ hand = 0
 
 isForearm = True
 outOfReach = False
+lockHandAndForearm = False
 
 # ---------------------------------
 # draw
@@ -83,11 +84,12 @@ def draw_extra(ctx):
         global r0, Z0
         r0 = r
         Z0 = Z
-    ctx.rectangle(
+    if not lockHandAndForearm:
+        ctx.rectangle(
             OriginSideX + r0,
             OriginSideY - 0.5*SIZE - Z0,
             0.05*SIZE, 0.05*SIZE)
-    ctx.stroke()
+        ctx.stroke()
     
 
 # ---------------------------------
@@ -191,6 +193,7 @@ def mouse_dragged(self, e):
     global mXR, mYR
     global mXik, mYik
     global originHandX, originHandY
+    global outOfReach
     
     if e.y > Height/2: 
         mXik = e.x
@@ -200,7 +203,8 @@ def mouse_dragged(self, e):
         if e.x < Width and e.y > 0 and e.x > Width - 1.5*SIZE and e.y < d + 1.5*SIZE:
             if e.x < Width - 0.5*SIZE and e.y > 0.5*SIZE and e.x > Width - SIZE and e.y < d + 0.5*SIZE:
                 xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, d + 0.5*SIZE - e.y)
-            
+            else:
+                outOfReach = True
         elif isForearm:
             mXL = e.x
             mYL = e.y
@@ -215,15 +219,22 @@ def mouse_dragged(self, e):
     originHandY = originForearmY + (length_Forearm)*sin(forearm - pi) 
     drawingarea.queue_draw()
 
+def check_toggled(e):
+    global lockHandAndForearm
+    lockHandAndForearm ^=1
+
 # Inverse Kinematics:
 # From Cartesian to Servo Angles
 # ---------------------------------
 # xyzToServoAngles
 # ---------------------------------
 def xyzToServoAngles(choice,x, y, z):
-    global base, forearm, hand,r, Z
+    global base, forearm, hand, r, Z
     global outOfReach
     outOfReach = False
+    base0 = base
+    forearm0 = forearm
+    hand0 = hand
     
     if choice == 0:
         a = length_Forearm
@@ -234,6 +245,7 @@ def xyzToServoAngles(choice,x, y, z):
             r = d
         
         R = sqrt(r*r + z*z)
+        
         if z <= 0:
             Z = 0
         elif z >= d + 0.5*SIZE:
@@ -242,50 +254,56 @@ def xyzToServoAngles(choice,x, y, z):
             Z = z
     
         if Z >= 0 and Z <= d and R > (a-b) and R < (a+b):
-            base     = atan2(y,x) + pi
-            forearm  = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) + pi
-            hand     = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
+            base0     = atan2(y,x) + pi
+            if not lockHandAndForearm:
+                forearm0  = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) + pi
+                hand0     = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
         else:
             outOfReach = True
     
     elif choice == 1:
-        forearm = atan2(y, x) + pi              
+        forearm0 = atan2(y, x) + pi              
     
     elif choice == 2:
-        hand = atan2(y, x) + pi/4 - forearm    
+        hand0 = atan2(y, x) + pi/4 - forearm0    
     
     # Set limits
-    if base > pi and base < pi*3/2:
-        base = pi
+    if base0 > pi and base0 < pi*3/2:
+        base0 = pi
         outOfReach = True
-    elif base > pi and base > pi*3/2:
-        base = 0
-        outOfReach = True
-
-    if forearm >= pi and forearm < pi*3/2:
-        forearm = pi
-        outOfReach = True
-    elif forearm <= 0 or forearm >= pi*3/2:
-        forearm = 0
+    elif base0 > pi and base0 > pi*3/2:
+        base0 = 0
         outOfReach = True
 
-    if forearm > pi/4:
-        if hand < -pi or hand > pi/2:
-            hand = -pi
+    if forearm0 >= pi and forearm0 < pi*3/2:
+        forearm0 = pi
+        outOfReach = True
+    elif forearm0 <= 0 or forearm0 >= pi*3/2:
+        forearm0 = 0
+        outOfReach = True
+
+    if forearm0 > pi/4:
+        if hand0 < -pi or hand0 > pi/2:
+            hand0 = -pi
             outOfReach = True
-        elif hand > 0 and hand < pi/2:
-            hand = 0
+        elif hand0 > 0 and hand0 < pi/2:
+            hand0 = 0
             outOfReach = True
     else:
-        hand -= pi/4
-        if hand > -pi/4 and hand < pi/2:
-            hand = -pi/4
+        hand0 -= pi/4
+        if hand0 > -pi/4 and hand0 < pi/2:
+            hand0 = -pi/4
             outOfReach = True
-        elif hand > 0 and hand > pi/2:
-            hand = -pi - forearm
+        elif hand0 > 0 and hand0 > pi/2:
+            hand0 = -pi - forearm0
             outOfReach = True
-        hand += pi/4
-                
+        hand0 += pi/4
+
+    if not outOfReach:
+        base = base0
+        forearm = forearm0
+        hand = hand0
+
 def main():
     win = Gtk.Window()
     win.connect('destroy', Gtk.main_quit)
@@ -300,7 +318,13 @@ def main():
     drawing_event_box.connect('button-press-event', mouse_pressed)
     drawing_event_box.connect('motion-notify-event', mouse_dragged)
 
-    win.add(drawing_event_box)
+    check_useIk = Gtk.CheckButton("Lock Forearm & Hand")
+    check_useIk.connect("toggled", check_toggled)
+    
+    box = Gtk.VBox()
+    box.pack_start(check_useIk, False, True, 0)
+    box.pack_start(drawing_event_box, True, True, 0)
+    win.add(box)
     win.show_all()
     Gtk.main()
     
