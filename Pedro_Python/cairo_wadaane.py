@@ -61,8 +61,7 @@ def draw(da, ctx):
     draw_pedro_side(ctx)
     draw_pedro_top(ctx)
     draw_text(ctx)
-        
-    
+            
 # ---------------------------------
 # draw_extra
 # ---------------------------------
@@ -90,24 +89,6 @@ def draw_extra(ctx):
             0.05*SIZE, 0.05*SIZE)
     ctx.stroke()
     
-
-# ---------------------------------
-# draw_text
-# ---------------------------------
-def draw_text(ctx):
-    ctx.select_font_face("Purisa", cairo.FONT_SLANT_NORMAL, 
-            cairo.FONT_WEIGHT_NORMAL)
-    ctx.set_font_size(TXT_SIZE)
-    ctx.move_to(0.01*SIZE, TXT_SIZE)
-    ctx.show_text('Base: ' + str(int(degrees(base))))
-    ctx.move_to(0.01*SIZE, 2*TXT_SIZE)
-    ctx.show_text('Forearm: '+ str(int(degrees(forearm))))
-    ctx.move_to(0.01*SIZE, 3*TXT_SIZE)
-    ctx.show_text('Hand: '+ str(int(degrees(-hand))))
-    if outOfReach:        
-        ctx.set_source_rgb(1, 0, 0) 
-        ctx.move_to(-3*TXT_SIZE + Width/2, 0.5*SIZE + Height/2)
-        ctx.show_text('OUT OF REACH !!!')
 
 # ---------------------------------
 # draw_pedro_side
@@ -177,6 +158,23 @@ def draw_pedro_top(ctx):
     ctx.restore()
     ctx.stroke()
 
+# ---------------------------------
+# draw_text
+# ---------------------------------
+def draw_text(ctx):
+    ctx.select_font_face("Purisa", cairo.FONT_SLANT_NORMAL, 
+            cairo.FONT_WEIGHT_NORMAL)
+    ctx.set_font_size(TXT_SIZE)
+    ctx.move_to(0.01*SIZE, TXT_SIZE)
+    ctx.show_text('Base: ' + str(int(degrees(base))))
+    ctx.move_to(0.01*SIZE, 2*TXT_SIZE)
+    ctx.show_text('Forearm: '+ str(int(degrees(forearm))))
+    ctx.move_to(0.01*SIZE, 3*TXT_SIZE)
+    ctx.show_text('Hand: '+ str(int(degrees(-hand))))
+    if outOfReach:        
+        ctx.set_source_rgb(1, 0, 0) 
+        ctx.move_to(-3*TXT_SIZE + Width/2, 0.5*SIZE + Height/2)
+        ctx.show_text('OUT OF REACH !!!')
     
 # ---------------------------------
 # mouse_pressed
@@ -216,7 +214,6 @@ def mouse_dragged(self, e):
     originHandX = originForearmX + (length_Forearm)*cos(forearm - pi)
     originHandY = originForearmY + (length_Forearm)*sin(forearm - pi) 
     drawingarea.queue_draw()
-
 
 # Inverse Kinematics:
 # From Cartesian to Servo Angles
@@ -288,8 +285,7 @@ def xyzToServoAngles(choice,x, y, z):
             hand = -pi - forearm
             outOfReach = True
         hand += pi/4
-        
-        
+                
 def main():
     win = Gtk.Window()
     win.connect('destroy', Gtk.main_quit)
