@@ -8,13 +8,14 @@ from gi.repository import Gtk, Gdk
 
 global drawingarea
 
-SIZE = 75
+SIZE = 50
 TXT_SIZE = SIZE/5
-length_Hand = SIZE
-length_EndPoint = 0.4*SIZE
 length_Forearm = 2*SIZE
+length_Hand = 0.93*length_Forearm
+length_EndPoint = 0.28*length_Forearm
+length_Base = 0.5*length_Forearm
 
-Z = 1*SIZE
+Z = 0
 Z0 = Z
 d = length_Forearm + length_Hand + length_EndPoint
 c = length_Forearm - length_Hand - length_EndPoint
@@ -30,14 +31,14 @@ mYik = 0
 
 OriginSideX = d 
 OriginSideY = d + SIZE
-OriginTopX = 2*d + SIZE + OriginSideX
+OriginTopX = 2*d + OriginSideX + SIZE 
 OriginTopY = d + SIZE
 
-Width = 4*d + 3*SIZE
+Width = 4*d + 4*SIZE
 Height = OriginTopY + SIZE
 
 originForearmX = OriginSideX 
-originForearmY = OriginSideY - 0.5*SIZE
+originForearmY = OriginSideY - 0.5*length_Base
 originHandX = originForearmX - length_Forearm
 originHandY = originForearmY
 
@@ -67,27 +68,36 @@ def draw(da, ctx):
 # draw_extra
 # ---------------------------------
 def draw_extra(ctx):
-    ctx.move_to(-SIZE +Width/2, 0)
+    # Vertical separator
+    ctx.move_to(-1.5*SIZE + Width/2, 0) #
     ctx.rel_line_to(0, Height)
-    ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
     ctx.stroke()
     
-    ctx.new_path()
+    # Z control rectangle
+    ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
+    ctx.fill()
+    # ctx.stroke()
+    
+    # Top View limits
+#    ctx.new_path()
     ctx.set_dash([SIZE/4.0, SIZE/4.0], 0)
     if (d*d - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(d*d-Z*Z), pi, 2*pi)
     if (c*c - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(c*c-Z*Z), pi, 2*pi)
     ctx.close_path()
     ctx.stroke()
+    
 
     ctx.set_dash([], 0)
     if not outOfReach:
         global r0, Z0
         r0 = r
         Z0 = Z
+    
+    # Draw target and vertical slider
     if not lockHandAndForearm:
         ctx.rectangle(
             OriginSideX + r0,
-            OriginSideY - 0.5*SIZE - Z0,
+            OriginSideY - 0.5*SIZE - Z0,   # 
             0.05*SIZE, 0.05*SIZE)
         ctx.stroke()
         
@@ -95,6 +105,7 @@ def draw_extra(ctx):
         ctx.move_to(Width - SIZE, OriginSideY - 0.5*SIZE - Z0)
         ctx.rel_line_to(0.5*SIZE, 0)
 
+        ctx.set_source_rgb(1, 0, 0)
         ctx.stroke()
     
 
@@ -102,53 +113,111 @@ def draw_extra(ctx):
 # draw_pedro_side
 # ---------------------------------
 def draw_pedro_side(ctx):
-
-        # Base
-    ctx.rectangle(OriginSideX - 0.5*SIZE, OriginSideY + 0.5*SIZE, SIZE, -SIZE)
-    ctx.rectangle(OriginSideX, OriginSideY, 0.05*SIZE, 0.05*SIZE)
-    ctx.stroke()
     
-        # Forearm
     ctx.save()
+    
+    side_base(ctx)
+    side_forearm(ctx)
+    side_hand(ctx)
+    side_endpoint(ctx)
+    
+    ctx.restore() 
+
+def side_base(ctx):
+    ctx.set_source_rgb(0, 0, 0)
+    
+    ctx.rectangle(
+        OriginSideX - 0.5*(length_Base + 0.5*SIZE), 
+        OriginSideY + 0.5*length_Base,
+        length_Base + 0.5*SIZE, - length_Base)
+    ctx.fill()
+    # ctx.stroke()
+    
+    #ctx.rectangle(OriginSideX, OriginSideY, 0.05*SIZE, 0.05*SIZE)
+    ctx.set_source_rgb(1, 0, 0) 
+    ctx.arc(OriginSideX, OriginSideY - 0.5*length_Base, 0.5*(length_Base + 0.5*SIZE), pi, 0)    
+    
+    ctx.fill()
+    # ctx.stroke()
+    ctx.set_source_rgb(0, 0, 0) 
+
+def side_forearm(ctx):
     ctx.translate(originForearmX, originForearmY)
-    ctx.rectangle(0, 0, 0.05*SIZE, 0.05*SIZE)
-    ctx.rotate(forearm)                             
-    ctx.rectangle(0, -0.25*SIZE, -2*SIZE, 0.5*SIZE)
-    ctx.stroke()
+    #ctx.rectangle(0, 0, 0.05*SIZE, 0.05*SIZE)
+    
+    ctx.rotate(forearm)                            
+    ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE), 0, 2*pi)
+    ctx.fill()
+    # ctx.stroke()
+    
+    ctx.rectangle(0, -0.125*length_Forearm, -length_Forearm, 0.25*length_Forearm)
+    ctx.fill()
+    # ctx.stroke()
+    
+    ctx.set_source_rgb(1, 0, 0) 
+    ctx.arc(0 , 0, 0.05*length_Forearm, 0, 2*pi)
+    ctx.fill()
+    # ctx.stroke()
+    
     ctx.restore()
-    
-    
-        # Hand
+    ctx.set_source_rgb(0, 0, 0)     
+
+def side_hand(ctx):
     ctx.save()    
     ctx.translate(originHandX, originHandY)    
-    ctx.rectangle(0, 0, 0.05*SIZE, 0.05*SIZE)
+    #ctx.rectangle(0, 0, 0.05*SIZE, 0.05*SIZE)
+    #ctx.stroke()
+    
     ctx.rotate(forearm)
-    ctx.stroke()
     
     ctx.rotate(hand)
-    ctx.new_path()
-    ctx.move_to(-0.25*SIZE*cos(-pi/4), 0.25*SIZE*sin(-pi/4))
-    ctx.rel_line_to(0.5*SIZE*cos(-pi/4), -0.5*SIZE*sin(-pi/4))
-    ctx.rel_line_to(SIZE*cos(-pi/4), SIZE*sin(-pi/4))
-    ctx.rel_line_to(-0.5*SIZE*cos(-pi/4), 0.5*SIZE*sin(-pi/4))
-    ctx.close_path()    
-    ctx.stroke()    
-        
-        # # End Point
-    ctx.rotate(-pi/4)
-    ctx.translate(SIZE, 0)
-    ctx.new_path()
-    ctx.move_to(0, -0.2*SIZE)
-    ctx.rel_line_to(0.4*SIZE, 0.15*SIZE)
-    ctx.rel_line_to(-0.4*SIZE, 0)
-    ctx.close_path()    
-    ctx.move_to(0, 0.2*SIZE)
-    ctx.rel_line_to(0.4*SIZE, -0.15*SIZE)
-    ctx.rel_line_to(-0.4*SIZE, 0)
-    ctx.close_path()    
-    ctx.stroke()    
-    ctx.restore() 
+    ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE), 0, 2*pi)
+    ctx.fill()
+    # ctx.stroke()
     
+    ctx.save()
+    ctx.rotate(-pi/4)
+    ctx.rectangle(
+        0, 
+        -0.0625*length_Hand, 
+        0.6*length_Hand, 
+        0.125*length_Hand)
+    
+    ctx.rectangle(
+        0.6*length_Hand, 
+        -0.125*length_Hand, 
+        0.4*length_Hand, 
+        0.25*length_Hand)
+    
+    ctx.fill()
+    # ctx.stroke()
+    
+    ctx.set_source_rgb(1, 0, 0) 
+    ctx.arc(0 , 0, 0.05*length_Forearm, 0, 2*pi)
+    ctx.fill()
+    # ctx.stroke()
+    
+
+def side_endpoint(ctx):
+    #ctx.rotate(-pi/4)
+    ctx.translate(length_Hand, 0)
+    ctx.set_source_rgb(1, 0, 0) 
+    
+    ctx.new_path()
+    ctx.move_to(0, -0.5*0.25*length_Hand)
+    ctx.rel_line_to(length_EndPoint, 0.4*0.25*length_Hand)
+    ctx.rel_line_to(-length_EndPoint, 0)
+    ctx.close_path()
+   
+    ctx.move_to(0, 0.5*0.25*length_Hand)
+    ctx.rel_line_to(length_EndPoint, -0.4*0.25*length_Hand)
+    ctx.rel_line_to(-length_EndPoint, 0)
+    ctx.close_path()    
+
+    ctx.fill()
+    # ctx.stroke()    
+    ctx.restore()
+    ctx.set_source_rgb(0, 0, 0) 
 
 # ---------------------------------
 # draw_pedro_top
@@ -164,8 +233,9 @@ def draw_pedro_top(ctx):
     ctx.rectangle(0, -0.25*SIZE, - r0, 0.5*SIZE)    
 
     ctx.restore()
-    ctx.stroke()
-
+    ctx.fill()
+    # ctx.stroke()
+    
 # ---------------------------------
 # draw_text
 # ---------------------------------
@@ -202,7 +272,7 @@ def mouse_dragged(self, e):
     global originHandX, originHandY
     global outOfReach
     
-    if e.x > Width/2 and e.x < Width - 1.5*SIZE: 
+    if e.x > -1.5*SIZE + Width/2 and e.x < Width - 1.5*SIZE: 
         mXik = e.x
         mYik = e.y
         xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, Z)
@@ -248,23 +318,23 @@ def xyzToServoAngles(choice,x, y, z):
         b = length_Hand + length_EndPoint     
         r = sqrt(x*x + y*y)
         
-        if r > d:
+        if r >= d:
             r = d
-        
-        R = sqrt(r*r + z*z)
         
         if z <= 0:
             Z = 0
         elif z >= d + 0.5*SIZE:
-            z = d + 0.5*SIZE
+            Z = d + 0.5*SIZE
         else:
             Z = z
-    
-        if Z >= 0 and Z <= d and R > (a-b) and R < (a+b):
-            base0     = atan2(y,x) + pi
+
+        R = sqrt(r*r + Z*Z)
+        
+        if R > (b-a) and R <= (a+b):
+            base0 = atan2(y,x) + pi
             if not lockHandAndForearm:
-                forearm0  = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) + pi
-                hand0     = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
+                forearm0 = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) + pi
+                hand0 = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
         else:
             outOfReach = True
     
