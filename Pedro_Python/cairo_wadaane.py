@@ -379,7 +379,7 @@ def xyzToServoAngles(choice,x, y, z):
     if not outOfReach:
         send_angles(base0, forearm0, hand0, 0)
 
-def set_angle(b, f, h, g):
+def set_angles(b, f, h, g):
     global base, forearm, hand
     
     base = b
@@ -389,7 +389,7 @@ def set_angle(b, f, h, g):
 
 def send_angles(b, f, h, g):
     # serial_send_angles(b, f, h, g)
-    set_angle(b, f, h, g)
+    set_angles(b, f, h, g)
     
 def main():
     win = Gtk.Window()
