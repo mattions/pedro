@@ -170,7 +170,7 @@ def side_hand(ctx):
     
     ctx.rotate(forearm)
     
-    ctx.rotate(hand)
+    ctx.rotate(-hand)
     ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE), 0, 2*pi)
     ctx.fill()
     # ctx.stroke()
@@ -248,7 +248,7 @@ def draw_text(ctx):
     ctx.move_to(0.01*SIZE, 2*TXT_SIZE)
     ctx.show_text('Forearm: '+ str(int(degrees(forearm))))
     ctx.move_to(0.01*SIZE, 3*TXT_SIZE)
-    ctx.show_text('Hand: '+ str(int(degrees(-hand))))
+    ctx.show_text('Hand: '+ str(int(degrees(hand))))
     if outOfReach:        
         ctx.set_source_rgb(1, 0, 0) 
         ctx.move_to(0.01*SIZE, 4*TXT_SIZE)
@@ -311,7 +311,7 @@ def xyzToServoAngles(choice,x, y, z):
     outOfReach = False
     base0 = base
     forearm0 = forearm
-    hand0 = hand
+    hand0 = -hand
     
     if choice == 0:
         a = length_Forearm
@@ -378,16 +378,13 @@ def xyzToServoAngles(choice,x, y, z):
 
     if not outOfReach:
         set_angle(base0, forearm0, hand0, 0)
-        # base = base0
-        # forearm = forearm0
-        # hand = hand0
 
 def set_angle(b, f, h, g):
     global base, forearm, hand
     
     base = b
     forearm = f
-    hand = h
+    hand = -h
     grip = g
     
 def main():
