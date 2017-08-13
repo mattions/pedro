@@ -377,10 +377,19 @@ def xyzToServoAngles(choice,x, y, z):
         hand0 += pi/4
 
     if not outOfReach:
-        base = base0
-        forearm = forearm0
-        hand = hand0
+        set_angle(base0, forearm0, hand0, 0)
+        # base = base0
+        # forearm = forearm0
+        # hand = hand0
 
+def set_angle(b, f, h, g):
+    global base, forearm, hand
+    
+    base = b
+    forearm = f
+    hand = h
+    grip = g
+    
 def main():
     win = Gtk.Window()
     win.connect('destroy', Gtk.main_quit)
