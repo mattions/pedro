@@ -49,7 +49,7 @@ hand = 0
 
 isForearm = True
 outOfReach = False
-lockHandAndForearm = False
+lockHandAndForearm = True
 
 # ---------------------------------
 # draw
@@ -337,7 +337,6 @@ def xyzToServoAngles(choice,x, y, z):
                 hand0 = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
         else:
             outOfReach = True
-    
     elif choice == 1:
         forearm0 = atan2(y, x) + pi              
     
@@ -355,7 +354,7 @@ def xyzToServoAngles(choice,x, y, z):
     if forearm0 >= pi and forearm0 < pi*3/2:
         forearm0 = pi
         outOfReach = True
-    elif forearm0 <= 0 or forearm0 >= pi*3/2:
+    elif forearm0 < 0 or forearm0 >= pi*3/2:
         forearm0 = 0
         outOfReach = True
 
@@ -370,21 +369,22 @@ def xyzToServoAngles(choice,x, y, z):
         hand0 -= pi/4
         if hand0 > -pi/4 and hand0 < pi/2:
             hand0 = -pi/4
-            outOfReach = True
-        elif hand0 > 0 and hand0 > pi/2:
+            outOfReach = True        
+        elif hand0 >= 0 and hand0 >= pi/2:
             hand0 = -pi - forearm0
             outOfReach = True
         hand0 += pi/4
 
+
     if not outOfReach:
-        send_angles(base0, forearm0, hand0, 0)
+        send_angles(base0, forearm0, -hand0, 0)
 
 def set_angles(b, f, h, g):
     global base, forearm, hand
     
     base = b
     forearm = f
-    hand = -h
+    hand = h
     grip = g
 
 def send_angles(b, f, h, g):
@@ -406,6 +406,7 @@ def main():
     drawing_event_box.connect('motion-notify-event', mouse_dragged)
 
     check_useIk = Gtk.CheckButton("Lock Forearm & Hand")
+    check_useIk.set_active(True)
     check_useIk.connect("toggled", check_toggled)
     
     box = Gtk.VBox()
