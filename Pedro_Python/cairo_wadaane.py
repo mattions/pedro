@@ -226,7 +226,7 @@ def draw_pedro_top(ctx):
     # Base
     ctx.save()
     ctx.translate(OriginTopX, OriginTopY)
-    ctx.rotate(base)
+    ctx.rotate(pi - base)
     
     ctx.rectangle(-0.5*SIZE, 0.5*SIZE, SIZE, -SIZE)
         
@@ -331,7 +331,7 @@ def xyzToServoAngles(choice,x, y, z):
         R = sqrt(r*r + Z*Z)
         
         if R > (b-a) and R <= (a+b):
-            base0 = atan2(y,x) + pi
+            base0 = -atan2(y,x)
             if not lockHandAndForearm:
                 forearm0 = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) + pi
                 hand0 = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
@@ -345,10 +345,10 @@ def xyzToServoAngles(choice,x, y, z):
         hand0 = atan2(y, x) + pi/4 - forearm0    
     
     # Set limits
-    if base0 > pi and base0 < pi*3/2:
+    if base0 < 0 and base0 < -pi/2:
         base0 = pi
         outOfReach = True
-    elif base0 > pi and base0 > pi*3/2:
+    elif base0 < 0 and base0 >= -pi/2:
         base0 = 0
         outOfReach = True
 
