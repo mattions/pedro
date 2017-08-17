@@ -108,8 +108,9 @@ THR_LOCK = threading.Lock()
 global drawingarea
 
 SIZE = 50
+SIZE_PEDRO = screen.get_width()/18
 TXT_SIZE = SIZE/4
-length_Forearm = 2*SIZE
+length_Forearm = 2*SIZE_PEDRO
 length_Hand = 0.93*length_Forearm
 length_EndPoint = 0.28*length_Forearm
 length_Base = 0.5*length_Forearm
@@ -128,7 +129,7 @@ mYR = 0
 mXik = 0
 mYik = 0
 
-OriginSideX = d
+OriginSideX = d - 20
 OriginSideY = d + SIZE
 OriginTopX = 2*d + OriginSideX + SIZE
 OriginTopY = d + SIZE
@@ -338,6 +339,7 @@ class Pedro(Gtk.Window):
         
         boxHSpeed = Gtk.HBox()
         boxVSpeed = Gtk.VBox()
+        boxHFrmSpd = Gtk.HBox()
 
         speedLabel = Gtk.Label("Speed: ")
         ad1 = Gtk.Adjustment(1, 1, 4, 5, 10, 0)
@@ -346,27 +348,48 @@ class Pedro(Gtk.Window):
         self.speed_scale.set_hexpand(True)
         self.speed_scale.set_valign(Gtk.Align.START)
         self.speed_scale.connect("value-changed", self.update_speed)
-        boxHSpeed.pack_start(speedLabel, False, False, 0)
-        boxHSpeed.pack_start(self.speed_scale, True, True, 0)
-        boxVSpeed.pack_start(boxHSpeed, True, True, 0)
+        #boxHSpeed.pack_start(speedLabel, False, False, 0)
+        #boxHSpeed.pack_start(self.speed_scale, True, True, 0)
+        
+        btnSpeed1 = Gtk.RadioButton(label="1")
+        btnSpeed1.connect("toggled", self.btnSpeed, "button Speed 1")
+        btnSpeed2 = Gtk.RadioButton.new_with_label_from_widget(btnSpeed1, "2")
+        btnSpeed2.set_active(False)
+        btnSpeed2.connect("toggled", self.btnSpeed, "button Speed 2")
+        btnSpeed3 = Gtk.RadioButton.new_with_label_from_widget(btnSpeed1, "3")
+        btnSpeed3.set_active(False)
+        btnSpeed3.connect("toggled", self.btnSpeed, "button Speed 3")
+        boxHSpeed.pack_start(btnSpeed1, True, False, 0)
+        boxHSpeed.pack_start(btnSpeed2, True, False, 10)
+        boxHSpeed.pack_start(btnSpeed3, True, False, 10)
+
+        frameSpeed = Gtk.Frame()
+        frmSpeed = Gtk.Frame()
+        frmSpeed.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
+        frameSpeed.set_label("Speed")
+        frameSpeed.add(boxHSpeed)
+        boxVSpeed.pack_start(frameSpeed, False, False, 10)
+        boxHFrmSpd.pack_start(boxVSpeed, True, True, 10)
 
         servboxV.pack_start(servboxH, False, False, 0)
-        servboxV.pack_start(boxVSpeed, False, False, 10)
+        servboxV.pack_start(boxHFrmSpd, True, True, 0)
+        frmSpeed.add(servboxV)
 
         box5 = Gtk.VBox()
         scrolled1 = Gtk.ScrolledWindow()
         scrolled1.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         box7 = Gtk.HBox()
-        boxH.pack_start(box7, False, False, 10)
-        boxH.pack_start(servboxV, True, True, 0)
-        boxH.set_size_request(width/2, height/3)
-        boxV.pack_start(boxH, False, False, 0)
+        #boxH.pack_start(box7, False, False, 10)
+        boxH.pack_start(frmSpeed, False, False, 10)
+        #boxH.set_size_request(width/2, height/3)
+        boxV.pack_start(boxH, False, False, 10)
 
         wdth = width/4
         hght = height/4
 
         frame1 = Gtk.Frame()
-        label1 = Gtk.Label("Base")
+        frame1.set_label("Base")
+        #label1 = Gtk.Label("Base")
         boxV1 = Gtk.VBox()
         boxH1 = Gtk.HBox()
         btn1Up.set_size_request(wdth/2.5, hght/2.5)
@@ -375,7 +398,7 @@ class Pedro(Gtk.Window):
         btn1Up.connect('button-release-event', self.on_btn1Up_release)
         btn1Down.connect('button-press-event', self.on_btn1Down_press)
         btn1Down.connect('button-release-event', self.on_btn1Up_release)
-        boxV1.pack_start(label1, False, False, 10)
+        #boxV1.pack_start(label1, False, False, 10)
         boxV1.pack_start(btn1Up, False, False, 10)
         boxV1.pack_start(serv1Lbl, False, False, 10)
         boxV1.pack_start(btn1Down, False, False, 10)
@@ -385,7 +408,8 @@ class Pedro(Gtk.Window):
         servboxH.pack_start(servboxV1, False, False, 10)
         
         frame2 = Gtk.Frame()
-        label2 = Gtk.Label("Forearm")
+        frame2.set_label("Forearm")
+        #label2 = Gtk.Label("Forearm")
         boxV2 = Gtk.VBox()
         boxH2 = Gtk.HBox()
         btn2Up.set_size_request(wdth/2.5, hght/2.5)
@@ -394,7 +418,7 @@ class Pedro(Gtk.Window):
         btn2Up.connect('button-release-event', self.on_btn2Up_release)
         btn2Down.connect('button-press-event', self.on_btn2Down_press)
         btn2Down.connect('button-release-event', self.on_btn2Up_release)
-        boxV2.pack_start(label2, False, False, 10)
+        #boxV2.pack_start(label2, False, False, 10)
         boxV2.pack_start(btn2Up, False, False, 10)
         boxV2.pack_start(serv2Lbl, False, False, 10)
         boxV2.pack_start(btn2Down, False, False, 10)
@@ -404,7 +428,8 @@ class Pedro(Gtk.Window):
         servboxH.pack_start(servboxV2, False, False, 10)
         
         frame3 = Gtk.Frame()
-        label3 = Gtk.Label("Hand")
+        frame3.set_label("Hand")
+        #label3 = Gtk.Label("Hand")
         boxV3 = Gtk.VBox()
         boxH3 = Gtk.HBox()
         btn3Up.set_size_request(wdth/2.5, hght/2.5)
@@ -413,7 +438,7 @@ class Pedro(Gtk.Window):
         btn3Up.connect('button-release-event', self.on_btn3Up_release)
         btn3Down.connect('button-press-event', self.on_btn3Down_press)
         btn3Down.connect('button-release-event', self.on_btn3Up_release)
-        boxV3.pack_start(label3, False, False, 10)
+        #boxV3.pack_start(label3, False, False, 10)
         boxV3.pack_start(btn3Up, False, False, 10)
         boxV3.pack_start(serv3Lbl, False, False, 10)
         boxV3.pack_start(btn3Down, False, False, 10)
@@ -423,7 +448,8 @@ class Pedro(Gtk.Window):
         servboxH.pack_start(servboxV3, False, False, 10)
         
         frame4 = Gtk.Frame()
-        label4 = Gtk.Label("Gripper")
+        frame4.set_label("Gripper")
+        #label4 = Gtk.Label("Gripper")
         boxV4 = Gtk.VBox()
         boxH4 = Gtk.HBox()
         btn4Up.set_size_request(wdth/2.5, hght/2.5)
@@ -432,7 +458,7 @@ class Pedro(Gtk.Window):
         btn4Up.connect('button-release-event', self.on_btn4Up_release)
         btn4Down.connect('button-press-event', self.on_btn4Down_press)
         btn4Down.connect('button-release-event', self.on_btn4Up_release)
-        boxV4.pack_start(label4, False, False, 10)
+        #boxV4.pack_start(label4, False, False, 10)
         boxV4.pack_start(btn4Up, False, False, 10)
         boxV4.pack_start(serv4Lbl, False, False, 10)
         boxV4.pack_start(btn4Down, False, False, 10)
@@ -454,12 +480,12 @@ class Pedro(Gtk.Window):
         buttonClear = Gtk.Button(name="button", label="Clear")
         buttonClear.connect("clicked", self.on_play_clicked)
 
-        box5.pack_start(buttonRecord, False, False, 10)
+        box5.pack_start(buttonRecord, False, False, 0)
         box5.pack_start(buttonPLay, False, False, 10)
         box5.pack_start(buttonPause, False, False, 10)
         box5.pack_start(buttonStop, False, False, 0)
         box5.pack_start(buttonRepeat, False, False, 10)
-        box5.pack_start(buttonClear, False, False, 10)
+        box5.pack_start(buttonClear, False, False, 0)
         boxH.pack_start(box5, True, True, 0)
 
         box6 = Gtk.HBox()
@@ -478,7 +504,7 @@ class Pedro(Gtk.Window):
         boxHBar.pack_start(align, True, True, 0)
         boxHBar.pack_start(boxH2Bar, False, False, 10)
         
-        memoryLabel = Gtk.Label("Memory used: 0%")
+        memoryLabel = Gtk.Label("Recording memory used: 0%")
         boxV.pack_start(memoryLabel, False, False, 10)
         boxV.pack_start(boxHBar, False, False, 10)
 
@@ -527,7 +553,6 @@ class Pedro(Gtk.Window):
         self.add(boxV)
         global initApp
         initApp = True
-
 
 #=======================================
 # For cairo
@@ -611,15 +636,15 @@ class Pedro(Gtk.Window):
         ctx.set_source_rgb(0, 0, 0)
     
         ctx.rectangle(
-            OriginSideX - 0.5*(length_Base + 0.5*SIZE),
+            OriginSideX - 0.5*(length_Base + 0.5*SIZE_PEDRO),
             OriginSideY + 0.5*length_Base,
-            length_Base + 0.5*SIZE, - length_Base)
+            length_Base + 0.5*SIZE_PEDRO, - length_Base)
         ctx.fill()
         # ctx.stroke()
                   
-        #ctx.rectangle(OriginSideX, OriginSideY, 0.05*SIZE, 0.05*SIZE)
+        #ctx.rectangle(OriginSideX, OriginSideY, 0.05*SIZE_PEDRO, 0.05*SIZE_PEDRO)
         ctx.set_source_rgb(1, 0, 0)
-        ctx.arc(OriginSideX, OriginSideY - 0.5*length_Base, 0.5*(length_Base + 0.5*SIZE), pi, 0)
+        ctx.arc(OriginSideX, OriginSideY - 0.5*length_Base, 0.5*(length_Base + 0.5*SIZE_PEDRO), pi, 0)
                   
         ctx.fill()
         # ctx.stroke()
@@ -630,10 +655,10 @@ class Pedro(Gtk.Window):
     # ---------------------------------
     def side_forearm(self,ctx):
         ctx.translate(originForearmX, originForearmY)
-        #ctx.rectangle(0, 0, 0.05*SIZE, 0.05*SIZE)
+        #ctx.rectangle(0, 0, 0.05*SIZE_PEDRO, 0.05*SIZE_PEDRO)
     
         ctx.rotate(forearm)
-        ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE), 0, 2*pi)
+        ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE_PEDRO), 0, 2*pi)
         ctx.fill()
             # ctx.stroke()
     
@@ -655,13 +680,13 @@ class Pedro(Gtk.Window):
     def side_hand(self,ctx):
         ctx.save()
         ctx.translate(originHandX, originHandY)
-        #ctx.rectangle(0, 0, 0.05*SIZE, 0.05*SIZE)
+        #ctx.rectangle(0, 0, 0.05*SIZE_PEDRO, 0.05*SIZE_PEDRO)
         #ctx.stroke()
     
         ctx.rotate(forearm)
     
         ctx.rotate(hand)
-        ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE), 0, 2*pi)
+        ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE_PEDRO), 0, 2*pi)
         ctx.fill()
         # ctx.stroke()
     
@@ -721,9 +746,9 @@ class Pedro(Gtk.Window):
         ctx.translate(OriginTopX, OriginTopY)
         ctx.rotate(base)
     
-        ctx.rectangle(-0.5*SIZE, 0.5*SIZE, SIZE, -SIZE)
+        ctx.rectangle(-0.5*SIZE_PEDRO, 0.5*SIZE_PEDRO, SIZE_PEDRO, -SIZE_PEDRO)
     
-        ctx.rectangle(0, -0.25*SIZE, - r0, 0.5*SIZE)
+        ctx.rectangle(0, -0.25*SIZE_PEDRO, - r0, 0.5*SIZE_PEDRO)
     
         ctx.restore()
         ctx.fill()
@@ -897,6 +922,12 @@ class Pedro(Gtk.Window):
             print ("No Pedro Connected")
 
 #=======================================
+
+    # ---------------------------------
+    # btnSpeed
+    # ---------------------------------
+    def btnSpeed(self, widget, data=None):
+       print "%s was toggled %s" % (data, ("OFF", "ON")[widget.get_active()])
 
     # ---------------------------------
     # update_speed
