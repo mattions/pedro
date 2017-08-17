@@ -5,6 +5,7 @@
 #title           :pedro.py
 #description     :Interface for Pedro Petit Robot an open source 3D robotic arm, with serial USB control
 #authors         :Almoutazar Saandi, Mohamed Salim Wadaane
+#emails          :almoutazar.saandi@gmail.com
 #date            :2016-2017
 #version         :1.0
 #usage           :python3 pedro.py
