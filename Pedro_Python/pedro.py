@@ -472,13 +472,13 @@ class Pedro(Gtk.Window):
         buttonPLay = Gtk.Button(name="button", label="Play")
         buttonPLay.connect("clicked", self.on_play_clicked)
         buttonPause = Gtk.Button(name="button", label="Pause")
-        buttonPause.connect("clicked", self.on_play_clicked)
+        buttonPause.connect("clicked", self.on_pause_clicked)
         buttonStop = Gtk.Button(name="button", label="Stop")
         buttonStop.connect("clicked", self.on_stop_clicked)
         buttonRepeat = Gtk.CheckButton("Repeat one time")
         buttonRepeat.connect("toggled", self.on_repeat_clicked)
         buttonClear = Gtk.Button(name="button", label="Clear")
-        buttonClear.connect("clicked", self.on_play_clicked)
+        buttonClear.connect("clicked", self.on_clear_clicked)
 
         box5.pack_start(buttonRecord, False, False, 0)
         box5.pack_start(buttonPLay, False, False, 10)
@@ -943,75 +943,56 @@ class Pedro(Gtk.Window):
         print("repeat button was toggled " + str(button.get_active()))
 
     # ---------------------------------
-    # on_lock_servo1
+    # on_rec_clicked
     # ---------------------------------
-    def on_lock_servo1(self, button):
-        global lockServo1
-        print("lock servo 1 was toggled " + str(button.get_active()))
-        if button.get_active():
-            lockServo1 = True
-        else:
-            lockServo1 = False
-
-    # ---------------------------------
-    # on_lock_servo2
-    # ---------------------------------
-    def on_lock_servo2(self, button):
-        global lockServo2
-        print("lock servo 2 was toggled " + str(button.get_active()))
-        if button.get_active():
-            lockServo2 = True
-        else:
-            lockServo2 = False
-
-    # ---------------------------------
-    # on_lock_servo3
-    # ---------------------------------
-    def on_lock_servo3(self, button):
-        global lockServo3
-        print("lock servo 3 was toggled " + str(button.get_active()))
-        if button.get_active():
-            lockServo3 = True
-        else:
-            lockServo3 = False
-
-    # ---------------------------------
-    # on_lock_servo4
-    # ---------------------------------
-    def on_lock_servo4(self, button):
-        global lockServo4
-        print("lock servo 4 was toggled " + str(button.get_active()))
-        if button.get_active():
-            lockServo4 = True
-        else:
-            lockServo4 = False
+    def on_rec_clicked(self, button):
+        print("rec button was clicked")
+        try:
+            ser.write(bytearray([99, 44]))
+        except:
+            print ("Record unavailable. No Pedro Connected")
 
     # ---------------------------------
     # on_play_clicked
     # ---------------------------------
     def on_play_clicked(self, button):
         print("play button was clicked")
-        #rec = [0, 0, 99]
-        #data = bytearray(rec)
-        #ser.write(data)
+        try:
+            ser.write(bytearray([99, 55]))
+        except:
+            print ("Play unavailable. No Pedro Connected")
 
     # ---------------------------------
-    # on_rec_clicked
+    # on_pause_clicked
     # ---------------------------------
-    def on_rec_clicked(self, button):
-        print("rec button was clicked")
-        rec = [0, 0, 88]
-        data = bytearray(rec)
-        ser.write(data)
+    def on_pause_clicked(self, button):
+        print("pause button was clicked")
+        try:
+            ser.write(bytearray([99, 66]))
+        except:
+            print ("Pause unavailable. No Pedro Connected")
 
     # ---------------------------------
     # on_stop_clicked
     # ---------------------------------
     def on_stop_clicked(self, button):
         print("stop button was clicked")
-        rec = [0, 0, 77]
-        data = bytearray(rec)
-        ser.write(data)
+        try:
+            ser.write(bytearray([99, 77]))
+        except:
+            print ("Play unavailable. No Pedro Connected")
+
+
+    # ---------------------------------
+    # on_clear_clicked
+    # ---------------------------------
+    def on_clear_clicked(self, button):
+        print("clear button was clicked")
+        try:
+            ser.write(bytearray([99, 88]))
+        except:
+            print ("Clear unavailable. No Pedro Connected")
+
 
     # ---------------------------------
     # on_close_clicked
