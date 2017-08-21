@@ -3,7 +3,7 @@
 //============================================================================================================
 //title           :pedro.ino
 //description     :Arduino code for Pedro Petit Robot an open source 3D robotic arm, with serial USB control
-//author          :Almoutazar Saandi
+//email           :pedropetitrobot@gmail.com
 //date            :2016-2017
 //version         :1.0
 //============================================================================================================
