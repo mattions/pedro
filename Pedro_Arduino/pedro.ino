@@ -50,6 +50,7 @@ int val2 = 0;
 int val3 = 0;
 int val4 = 0;
 boolean inRecord = false;
+boolean serialStop = false;
 void setup() {
   Serial.begin(9600);
   pinMode (9,OUTPUT);
@@ -245,13 +246,8 @@ void record() {
         recording = false;
         goHome();
       }
-  /*
-  if (button_1 == LOW) {
-      digitalWrite (9, LOW); //jaune
-          replaying = false;
-  }
-  */
- /// }
+
+   inRecord = false;
 } 
 void analog_Write() {
   analog_Read(); 
@@ -366,7 +362,7 @@ void replay() {
   while (replaying) { 
     
       //repeat();
-      if (digitalRead(13) == HIGH or i == 1) {
+      if (digitalRead(13) == HIGH or serialStop == true or i == 1) {
         i = 0;
         digitalWrite (10, HIGH);
         delay (500);
@@ -378,6 +374,7 @@ void replay() {
         goHome();
         addr = 0;
         replaying = false;
+        serialStop = false;
         break;
       }
       if ((posOne == 255) or (posOne1 == 255) or (posTwo == 255) or (posTwo1 == 255) or (posThree == 255) or (posThree1 == 255) or (posFour == 255) or (posFour1 == 255))
@@ -557,12 +554,28 @@ void serialRead() {
          } else if (msgByte[0] == 9 and msgByte[1] == 1 and msgByte[2] == 1 and msgByte[3] == 0 and msgByte[4] == 3 and msgByte[5] == 1) {
             Serial.print("Hi! Im Pedro");
          }
-         if (msgByte[2] == 99) {          //play
-            btnPlay = true;
-         } else if (msgByte[2] == 88) {   //record
-            btnRec = true;
-         } else if (msgByte[2] == 77) {   //stop
-            btnStop = true;
+
+         if (msgByte[0] == 99) { 
+            if (msgByte[1] == 44) {          //record
+               if (inRecord == false) {
+                   inRecord = true;
+                   record();
+               }
+            } else if (msgByte[1] == 55) {   //play
+                addr = 0;
+                digitalWrite (10, HIGH); //rouge
+                replaying = true;
+                replay();
+            } else if (msgByte[1] == 66) {   //pause
+               btnStop = true;
+            } else if (msgByte[1] == 77) {   //stop
+               serialStop = true;
+            } else if (msgByte[1] == 88) {   //clear
+               btnStop = true;
+            } else if (msgByte[1] == 99) {   //speed
+               btnStop = true;
+            }
+
          }
     }
 }
