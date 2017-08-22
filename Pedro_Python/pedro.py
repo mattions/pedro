@@ -305,6 +305,8 @@ class Pedro(Gtk.Window):
         sepa = Gtk.VSeparator()
         buttonClose = Gtk.Button("Close")
         buttonClose.connect("clicked", self.on_close_clicked)
+        buttonAbout = Gtk.Button("About")
+        buttonAbout.connect("clicked", self.on_about_clicked)
         connected = Gtk.Label("Connected : ")
         btnUpdate = Gtk.Button("Serial")
         btnUpdate.connect("clicked", self.on_serial_updated)
@@ -318,6 +320,7 @@ class Pedro(Gtk.Window):
 
         pedro_combo.connect("changed", self.on_pedro_combo_changed)
         hb.pack_end(buttonClose)
+        hb.pack_end(buttonAbout)
 
         vpaned = Gtk.VPaned()
         hpaned = Gtk.HPaned()
@@ -992,6 +995,31 @@ class Pedro(Gtk.Window):
         except:
             print ("Clear unavailable. No Pedro Connected")
 
+    # ---------------------------------
+    # on_about_clicked
+    # ---------------------------------
+    def on_about_clicked(self, button):
+        # a  Gtk.AboutDialog
+        about = Gtk.AboutDialog()
+       # about.set_title("Pedro Software")
+        about.set_program_name("Pedro Software")
+        about.set_version("1.0")
+        about.set_copyright("Copyright \xc2\xa9 2017 PEDRO PETIT ROBOT Documentation Team")
+        about.set_comments("Pedro Software is the graphical interface of Pedro Petit Robot")
+        about.set_website("https://hackaday.io/project/26119/")
+        #about.set_program_name("AboutDialog Example")
+      #  about.set_authors("pedropetitrobot@gmail.com")
+        #about.set_logo(gtk.gdk.pixbuf_new_from_file("battery.png"))
+        about.run()
+        about.destroy()
+
+        about.show()
+
+    # ---------------------------------
+    # on_close_about
+    # ---------------------------------
+    def on_close_about(self, action, parameter):
+        action.destroy()
 
     # ---------------------------------
     # on_close_clicked
