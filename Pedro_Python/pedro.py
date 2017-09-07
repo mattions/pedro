@@ -107,7 +107,7 @@ THR_LOCK = threading.Lock()
 global drawingarea
 
 SIZE = 50
-SIZE_PEDRO = screen.get_width()/18
+SIZE_PEDRO = screen.get_width()/21
 TXT_SIZE = SIZE/4
 length_Forearm = 2*SIZE_PEDRO
 length_Hand = 0.93*length_Forearm
@@ -128,7 +128,7 @@ mYR = 0
 mXik = 0
 mYik = 0
 
-OriginSideX = d - 20
+OriginSideX = d - 50
 OriginSideY = d + SIZE
 OriginTopX = 2*d + OriginSideX + SIZE
 OriginTopY = d + SIZE
@@ -140,7 +140,6 @@ originForearmX = OriginSideX
 originForearmY = OriginSideY - 0.5*length_Base
 originHandX = originForearmX - length_Forearm
 originHandY = originForearmY
-
 
 base = 0
 forearm = 0
@@ -252,38 +251,218 @@ class Send_Cmd(threading.Thread):
             if servocmd == 11 and int(serv1Lbl.get_label()) < 180:
                 serv1Lbl.set_label(str(int(serv1Lbl.get_label()) + 1))
                 self.send_cmd(1, int(serv1Lbl.get_label()))
-                #self.send_cmd(1)
             elif servocmd == 22 and int(serv1Lbl.get_label()) > 0:
                 serv1Lbl.set_label(str(int(serv1Lbl.get_label()) - 1))
                 self.send_cmd(1, int(serv1Lbl.get_label()))
-                #self.send_cmd(1)
         elif serv2_chg:
             if servocmd == 11 and int(serv2Lbl.get_label()) < 180:
                 serv2Lbl.set_label(str(int(serv2Lbl.get_label()) + 1))
                 self.send_cmd(2, int(serv2Lbl.get_label()))
-                #self.send_cmd(2)
             elif servocmd == 22 and int(serv2Lbl.get_label()) > 0:
                 serv2Lbl.set_label(str(int(serv2Lbl.get_label()) - 1))
                 self.send_cmd(2, int(serv2Lbl.get_label()))
-                #self.send_cmd(2)
         elif serv3_chg:
             if servocmd == 11 and int(serv3Lbl.get_label()) < 180:
                 serv3Lbl.set_label(str(int(serv3Lbl.get_label()) + 1))
                 self.send_cmd(3, int(serv3Lbl.get_label()))
-                #self.send_cmd(3)
             elif servocmd == 22 and int(serv3Lbl.get_label()) > 0:
                 serv3Lbl.set_label(str(int(serv3Lbl.get_label()) - 1))
                 self.send_cmd(3, int(serv3Lbl.get_label()))
-                #self.send_cmd(3)
         elif serv4_chg:
             if servocmd == 11 and int(serv4Lbl.get_label()) < 180:
                 serv4Lbl.set_label(str(int(serv4Lbl.get_label()) + 1))
                 self.send_cmd(4, int(serv4Lbl.get_label()))
-                #self.send_cmd(4)
             elif servocmd == 22 and int(serv4Lbl.get_label()) > 0:
                 serv4Lbl.set_label(str(int(serv4Lbl.get_label()) - 1))
                 self.send_cmd(4, int(serv4Lbl.get_label()))
-                #self.send_cmd(4)
+
+#=======================================
+# Pedro
+#=======================================
+class About(Gtk.Window):
+
+    def __init__(self):
+        Gtk.Window.__init__(self,type=Gtk.WindowType.TOPLEVEL)
+        hb = Gtk.HeaderBar()
+        hb.props.title = self.__class__.__name__
+        self.set_titlebar(hb)
+        self.set_size_request(screen.get_width()/3, screen.get_height()/3)
+
+        width, height = self.get_size()
+        self.set_resizable(False)
+        buttonClose = Gtk.Button("Close")
+        buttonClose.connect("clicked", self.on_close_clicked)
+        hb.pack_end(buttonClose)
+
+        global drawingarea
+        drawingarea = Gtk.DrawingArea()
+        drawingarea.connect('draw', self.draw)
+    
+        drawing_event_box = Gtk.EventBox()
+        drawing_event_box.add(drawingarea)
+
+        self.SIZE = 50
+        self.SIZE_PEDRO = screen.get_width()/45
+        self.length_Forearm = 2*self.SIZE_PEDRO
+        self.length_Hand = 0.93*self.length_Forearm
+        self.length_EndPoint = 0.28*self.length_Forearm
+        self.length_Base = 0.5*self.length_Forearm
+
+        self.d = self.length_Forearm + self.length_Hand + self.length_EndPoint
+
+        self.OriginSideX = width/2
+        self.OriginSideY = self.length_Forearm + 2*self.length_EndPoint
+
+        self.originForearmX = self.OriginSideX
+        self.originForearmY = self.OriginSideY - 0.5*self.length_Base
+        self.originHandX = self.originForearmX - self.length_Forearm
+        self.originHandY = self.originForearmY
+
+        self.base = 0
+        self.forearm = 0
+        self.hand = 0
+
+        boxH = Gtk.HBox()
+        boxV = Gtk.VBox()
+        boxV2 = Gtk.VBox()
+        pedro_title = Gtk.Label("Pedro Software")
+        pedro_vers = Gtk.Label("1.0")
+        pedro_soft = Gtk.Label("Pedro Software is the graphical interface of Pedro Petit Robot")
+        pedro_web = Gtk.Label("https://hackaday.io/project/26119/")
+        pedro_email = Gtk.Label("pedropetitrobot@gmail.com")
+        pedro_copy = Gtk.Label("Copyright \xc2\xa9 2017 The Pedro Petit Robot Team")
+        boxV2.pack_start(pedro_title, False, True, 0)
+        boxV2.pack_start(pedro_vers, False, True, 0)
+        boxV2.pack_start(pedro_soft, False, True, 0)
+        boxV2.pack_start(pedro_web, False, True, 0)
+        boxV2.pack_start(pedro_email, False, True, 0)
+        boxV2.pack_start(pedro_copy, False, True, 0)
+        boxV.pack_start(drawing_event_box, True, True, 0)
+        boxV.pack_start(boxV2, False, True, 0)
+        self.add(boxV)
+
+
+    def on_close_clicked(self,  action):
+        self.destroy()
+
+    # ---------------------------------
+    # draw
+    # ---------------------------------
+    def draw(self, da, ctx):
+        ctx.set_source_rgb(0, 0, 0)
+        ctx.set_line_width(self.SIZE/20)
+        ctx.set_line_join(cairo.LINE_JOIN_ROUND)
+    
+        self.draw_pedro_side(ctx)
+
+    # ---------------------------------
+    # draw_pedro_side
+    # ---------------------------------
+    def draw_pedro_side(self,ctx):
+    
+        ctx.save()
+    
+        self.side_base(ctx)
+        self.side_forearm(ctx)
+        self.side_hand(ctx)
+        self.side_endpoint(ctx)
+    
+        ctx.restore()
+
+    # ---------------------------------
+    # side_base
+    # ---------------------------------
+    def side_base(self,ctx):
+        ctx.set_source_rgb(0, 0, 0)
+    
+        ctx.rectangle(
+            self.OriginSideX - 0.5*(self.length_Base + 0.5*self.SIZE_PEDRO),
+            self.OriginSideY + 0.5*self.length_Base,
+            self.length_Base + 0.5*self.SIZE_PEDRO, - self.length_Base)
+        ctx.fill()
+                  
+        ctx.set_source_rgb(1, 0, 0)
+        ctx.arc(self.OriginSideX, self.OriginSideY - 0.5*self.length_Base, 0.5*(self.length_Base + 0.5*self.SIZE_PEDRO), pi, 0)
+                  
+        ctx.fill()
+        ctx.set_source_rgb(0, 0, 0)
+
+    # ---------------------------------
+    # side_forearm
+    # ---------------------------------
+    def side_forearm(self,ctx):
+        ctx.translate(self.originForearmX, self.originForearmY)
+    
+        ctx.rotate(self.forearm)
+        ctx.arc(0 , 0, 0.4*(self.length_Base + 0.5*self.SIZE_PEDRO), 0, 2*pi)
+        ctx.fill()
+    
+        ctx.rectangle(0, -0.125*self.length_Forearm, -self.length_Forearm, 0.25*self.length_Forearm)
+        ctx.fill()
+    
+        ctx.set_source_rgb(1, 0, 0)
+        ctx.arc(0 , 0, 0.05*self.length_Forearm, 0, 2*pi)
+        ctx.fill()
+    
+        ctx.restore()
+        ctx.set_source_rgb(0, 0, 0)
+
+    # ---------------------------------
+    # side_hand
+    # ---------------------------------
+    def side_hand(self,ctx):
+        ctx.save()
+        ctx.translate(self.originHandX, self.originHandY)
+    
+        ctx.rotate(self.forearm)
+    
+        ctx.rotate(self.hand)
+        ctx.arc(0 , 0, 0.4*(self.length_Base + 0.5*self.SIZE_PEDRO), 0, 2*pi)
+        ctx.fill()
+    
+        ctx.save()
+        ctx.rotate(-pi/4)
+        ctx.rectangle(
+            0,
+            -0.0625*self.length_Hand,
+            0.6*self.length_Hand,
+            0.125*self.length_Hand)
+        
+        ctx.rectangle(
+            0.6*self.length_Hand,
+            -0.125*self.length_Hand,
+            0.4*self.length_Hand,
+            0.25*self.length_Hand)
+                  
+        ctx.fill()
+                  
+        ctx.set_source_rgb(1, 0, 0)
+        ctx.arc(0 , 0, 0.05*self.length_Forearm, 0, 2*pi)
+        ctx.fill()
+
+
+    # ---------------------------------
+    # side_endpoint
+    # ---------------------------------
+    def side_endpoint(self,ctx):
+        ctx.translate(self.length_Hand, 0)
+        ctx.set_source_rgb(1, 0, 0)
+    
+        ctx.new_path()
+        ctx.move_to(0, -0.5*0.25*self.length_Hand)
+        ctx.rel_line_to(self.length_EndPoint, 0.4*0.25*self.length_Hand)
+        ctx.rel_line_to(-self.length_EndPoint, 0)
+        ctx.close_path()
+    
+        ctx.move_to(0, 0.5*0.25*self.length_Hand)
+        ctx.rel_line_to(self.length_EndPoint, -0.4*0.25*self.length_Hand)
+        ctx.rel_line_to(-self.length_EndPoint, 0)
+        ctx.close_path()
+    
+        ctx.fill()
+        ctx.restore()
+        ctx.set_source_rgb(0, 0, 0)
+
 
 #=======================================
 # Pedro
@@ -291,11 +470,11 @@ class Send_Cmd(threading.Thread):
 class Pedro(Gtk.Window):
 
     def __init__(self):
-        Gtk.Window.__init__(self, title="Pedro")
+        Gtk.Window.__init__(self)
         
         hb = Gtk.HeaderBar()
         #hb.set_show_close_button(True)
-        hb.props.title = "Pedro"
+        hb.props.title = self.__class__.__name__
         self.set_titlebar(hb)
         color_widget(self, 'White')
         #self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.1)
@@ -567,8 +746,8 @@ class Pedro(Gtk.Window):
         ctx.set_line_width(SIZE/20)
         ctx.set_line_join(cairo.LINE_JOIN_ROUND)
     
-        self.draw_extra(ctx)
-        self.draw_pedro_side(ctx)
+        #self.draw_extra(ctx)
+        draw_pedro_side(ctx)
         self.draw_pedro_top(ctx)
         self.draw_text(ctx)
 
@@ -584,16 +763,13 @@ class Pedro(Gtk.Window):
         # Z control rectangle
         ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
         ctx.fill()
-        # ctx.stroke()
     
         # Top View limits
-        #    ctx.new_path()
         ctx.set_dash([SIZE/4.0, SIZE/4.0], 0)
         if (d*d - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(d*d-Z*Z), pi, 2*pi)
         if (c*c - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(c*c-Z*Z), pi, 2*pi)
         ctx.close_path()
         ctx.stroke()
-    
     
         ctx.set_dash([], 0)
         if not outOfReach:
@@ -615,129 +791,6 @@ class Pedro(Gtk.Window):
                       
             ctx.set_source_rgb(1, 0, 0)
             ctx.stroke()
-
-
-    # ---------------------------------
-    # draw_pedro_side
-    # ---------------------------------
-    def draw_pedro_side(self,ctx):
-    
-        ctx.save()
-    
-        self.side_base(ctx)
-        self.side_forearm(ctx)
-        self.side_hand(ctx)
-        self.side_endpoint(ctx)
-    
-        ctx.restore()
-
-    # ---------------------------------
-    # side_base
-    # ---------------------------------
-    def side_base(self,ctx):
-        ctx.set_source_rgb(0, 0, 0)
-    
-        ctx.rectangle(
-            OriginSideX - 0.5*(length_Base + 0.5*SIZE_PEDRO),
-            OriginSideY + 0.5*length_Base,
-            length_Base + 0.5*SIZE_PEDRO, - length_Base)
-        ctx.fill()
-        # ctx.stroke()
-                  
-        #ctx.rectangle(OriginSideX, OriginSideY, 0.05*SIZE_PEDRO, 0.05*SIZE_PEDRO)
-        ctx.set_source_rgb(1, 0, 0)
-        ctx.arc(OriginSideX, OriginSideY - 0.5*length_Base, 0.5*(length_Base + 0.5*SIZE_PEDRO), pi, 0)
-                  
-        ctx.fill()
-        # ctx.stroke()
-        ctx.set_source_rgb(0, 0, 0)
-
-    # ---------------------------------
-    # side_forearm
-    # ---------------------------------
-    def side_forearm(self,ctx):
-        ctx.translate(originForearmX, originForearmY)
-        #ctx.rectangle(0, 0, 0.05*SIZE_PEDRO, 0.05*SIZE_PEDRO)
-    
-        ctx.rotate(forearm)
-        ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE_PEDRO), 0, 2*pi)
-        ctx.fill()
-            # ctx.stroke()
-    
-        ctx.rectangle(0, -0.125*length_Forearm, -length_Forearm, 0.25*length_Forearm)
-        ctx.fill()
-        # ctx.stroke()
-    
-        ctx.set_source_rgb(1, 0, 0)
-        ctx.arc(0 , 0, 0.05*length_Forearm, 0, 2*pi)
-        ctx.fill()
-        # ctx.stroke()
-    
-        ctx.restore()
-        ctx.set_source_rgb(0, 0, 0)
-
-    # ---------------------------------
-    # side_hand
-    # ---------------------------------
-    def side_hand(self,ctx):
-        ctx.save()
-        ctx.translate(originHandX, originHandY)
-        #ctx.rectangle(0, 0, 0.05*SIZE_PEDRO, 0.05*SIZE_PEDRO)
-        #ctx.stroke()
-    
-        ctx.rotate(forearm)
-    
-        ctx.rotate(hand)
-        ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE_PEDRO), 0, 2*pi)
-        ctx.fill()
-        # ctx.stroke()
-    
-        ctx.save()
-        ctx.rotate(-pi/4)
-        ctx.rectangle(
-            0,
-            -0.0625*length_Hand,
-            0.6*length_Hand,
-            0.125*length_Hand)
-        
-        ctx.rectangle(
-            0.6*length_Hand,
-            -0.125*length_Hand,
-            0.4*length_Hand,
-            0.25*length_Hand)
-                  
-        ctx.fill()
-        # ctx.stroke()
-                  
-        ctx.set_source_rgb(1, 0, 0)
-        ctx.arc(0 , 0, 0.05*length_Forearm, 0, 2*pi)
-        ctx.fill()
-        # ctx.stroke()
-
-
-    # ---------------------------------
-    # side_endpoint
-    # ---------------------------------
-    def side_endpoint(self,ctx):
-        #ctx.rotate(-pi/4)
-        ctx.translate(length_Hand, 0)
-        ctx.set_source_rgb(1, 0, 0)
-    
-        ctx.new_path()
-        ctx.move_to(0, -0.5*0.25*length_Hand)
-        ctx.rel_line_to(length_EndPoint, 0.4*0.25*length_Hand)
-        ctx.rel_line_to(-length_EndPoint, 0)
-        ctx.close_path()
-    
-        ctx.move_to(0, 0.5*0.25*length_Hand)
-        ctx.rel_line_to(length_EndPoint, -0.4*0.25*length_Hand)
-        ctx.rel_line_to(-length_EndPoint, 0)
-        ctx.close_path()
-    
-        ctx.fill()
-        # ctx.stroke()
-        ctx.restore()
-        ctx.set_source_rgb(0, 0, 0)
 
     # ---------------------------------
     # draw_pedro_top
@@ -772,7 +825,6 @@ class Pedro(Gtk.Window):
         if outOfReach:
             ctx.set_source_rgb(1, 0, 0)
             ctx.move_to(0.01*SIZE, 4*TXT_SIZE)
-            #ctx.move_to(-3*TXT_SIZE + Width/2, 0.5*SIZE + Height/2)
             ctx.show_text('OUT OF REACH !!!')
 
     # ---------------------------------
@@ -999,38 +1051,23 @@ class Pedro(Gtk.Window):
     # on_about_clicked
     # ---------------------------------
     def on_about_clicked(self, button):
-        # a  Gtk.AboutDialog
-        about = Gtk.AboutDialog()
-       # about.set_title("Pedro Software")
-        about.set_program_name("Pedro Software")
-        about.set_version("1.0")
-        about.set_copyright("Copyright \xc2\xa9 2017 PEDRO PETIT ROBOT Documentation Team")
-        about.set_comments("Pedro Software is the graphical interface of Pedro Petit Robot")
-        about.set_website("https://hackaday.io/project/26119/")
-        #about.set_program_name("AboutDialog Example")
-      #  about.set_authors("pedropetitrobot@gmail.com")
-        #about.set_logo(gtk.gdk.pixbuf_new_from_file("battery.png"))
-        about.run()
-        about.destroy()
-
-        about.show()
-
-    # ---------------------------------
-    # on_close_about
-    # ---------------------------------
-    def on_close_about(self, action, parameter):
-        action.destroy()
+        win = About()
+        win.connect("delete-event", Gtk.main_quit)
+        win.show_all()
+        Gtk.main()
 
     # ---------------------------------
     # on_close_clicked
     # ---------------------------------
     def on_close_clicked(self, button):
+       
         global close_app
         close_app = True
         print("Closing application")
-        Gtk.main_quit()
-        window.destroy()
+        #Gtk.main_quit()
+        #window.destroy()
         print("Closing application****")
+        self.destroy()
 
     # ---------------------------------
     # ressource_path
@@ -1493,6 +1530,113 @@ def color_widget(widget, color):
     rgba = Gdk.RGBA.from_color(color)
     widget.override_background_color(0, rgba)
 
+# ---------------------------------
+# draw_pedro_side
+# ---------------------------------
+def draw_pedro_side(ctx):
+   
+    ctx.save()
+
+    side_base(ctx)
+    side_forearm(ctx)
+    side_hand(ctx)
+    side_endpoint(ctx)
+    
+    ctx.restore()
+
+# ---------------------------------
+# side_base
+# ---------------------------------
+def side_base(ctx):
+    ctx.set_source_rgb(0, 0, 0)
+    
+    ctx.rectangle(
+        OriginSideX - 0.5*(length_Base + 0.5*SIZE_PEDRO),
+        OriginSideY + 0.5*length_Base,
+        length_Base + 0.5*SIZE_PEDRO, - length_Base)
+    ctx.fill()
+                  
+    ctx.set_source_rgb(1, 0, 0)
+    ctx.arc(OriginSideX, OriginSideY - 0.5*length_Base, 0.5*(length_Base + 0.5*SIZE_PEDRO), pi, 0)
+                  
+    ctx.fill()
+    ctx.set_source_rgb(0, 0, 0)
+
+# ---------------------------------
+# side_forearm
+# ---------------------------------
+def side_forearm(ctx):
+    ctx.translate(originForearmX, originForearmY)
+    
+    ctx.rotate(forearm)
+    ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE_PEDRO), 0, 2*pi)
+    ctx.fill()
+    
+    ctx.rectangle(0, -0.125*length_Forearm, -length_Forearm, 0.25*length_Forearm)
+    ctx.fill()
+    
+    ctx.set_source_rgb(1, 0, 0)
+    ctx.arc(0 , 0, 0.05*length_Forearm, 0, 2*pi)
+    ctx.fill()
+    
+    ctx.restore()
+    ctx.set_source_rgb(0, 0, 0)
+
+# ---------------------------------
+# side_hand
+# ---------------------------------
+def side_hand(ctx):
+    ctx.save()
+    ctx.translate(originHandX, originHandY)
+    
+    ctx.rotate(forearm)
+   
+    ctx.rotate(hand)
+    ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE_PEDRO), 0, 2*pi)
+    ctx.fill()
+   
+    ctx.save()
+    ctx.rotate(-pi/4)
+    ctx.rectangle(
+        0,
+        -0.0625*length_Hand,
+        0.6*length_Hand,
+        0.125*length_Hand)
+        
+    ctx.rectangle(
+        0.6*length_Hand,
+        -0.125*length_Hand,
+        0.4*length_Hand,
+        0.25*length_Hand)
+                  
+    ctx.fill()
+                  
+    ctx.set_source_rgb(1, 0, 0)
+    ctx.arc(0 , 0, 0.05*length_Forearm, 0, 2*pi)
+    ctx.fill()
+
+
+# ---------------------------------
+# side_endpoint
+# ---------------------------------
+def side_endpoint(ctx):
+    ctx.translate(length_Hand, 0)
+    ctx.set_source_rgb(1, 0, 0)
+   
+    ctx.new_path()
+    ctx.move_to(0, -0.5*0.25*length_Hand)
+    ctx.rel_line_to(length_EndPoint, 0.4*0.25*length_Hand)
+    ctx.rel_line_to(-length_EndPoint, 0)
+    ctx.close_path()
+    
+    ctx.move_to(0, 0.5*0.25*length_Hand)
+    ctx.rel_line_to(length_EndPoint, -0.4*0.25*length_Hand)
+    ctx.rel_line_to(-length_EndPoint, 0)
+    ctx.close_path()
+   
+    ctx.fill()
+    ctx.restore()
+    ctx.set_source_rgb(0, 0, 0)
 
 # ---------------------------------
 # gtk_style
