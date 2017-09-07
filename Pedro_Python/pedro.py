@@ -325,7 +325,7 @@ class About(Gtk.Window):
         boxH = Gtk.HBox()
         boxV = Gtk.VBox()
         boxV2 = Gtk.VBox()
-        pedro_title = Gtk.Label("Pedro Software")
+        pedro_title = Gtk.Label("Pedro Petit Robot Software")
         pedro_vers = Gtk.Label("1.0")
         pedro_soft = Gtk.Label("Pedro Software is the graphical interface of Pedro Petit Robot")
         pedro_web = Gtk.Label("https://hackaday.io/project/26119/")
@@ -474,7 +474,7 @@ class Pedro(Gtk.Window):
         
         hb = Gtk.HeaderBar()
         #hb.set_show_close_button(True)
-        hb.props.title = self.__class__.__name__
+        hb.props.title = "Pedro Petit Robot"
         self.set_titlebar(hb)
         color_widget(self, 'White')
         #self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.1)
