@@ -294,7 +294,7 @@ def mouse_dragged(self, e):
         mYik = e.y
         # if e.x < Width - 0.5*SIZE and e.x > Width - SIZE and e.y > 0.5*SIZE and e.y < d + 0.5*SIZE:
         baseX = int(180*(e.x - 0.5*SIZE)/(2*d))
-        print("Percentage: " + str(baseX))
+        # print("Percentage: " + str(baseX))
         send_angles( radians(baseX), forearm, hand, grip)
             # xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, d + 0.5*SIZE - e.y)
         # else:
