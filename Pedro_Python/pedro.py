@@ -107,7 +107,7 @@ THR_LOCK = threading.Lock()
 global drawingarea
 
 SIZE = 50
-SIZE_PEDRO = screen.get_width()/21
+SIZE_PEDRO = screen.get_width()/60
 TXT_SIZE = SIZE/4
 length_Forearm = 2*SIZE_PEDRO
 length_Hand = 0.93*length_Forearm
@@ -125,7 +125,7 @@ mXL = 0
 mYL = 0
 mXR = 0
 mYR = 0
-mXik = 0
+mXik = 0.5*SIZE
 mYik = 0
 
 OriginSideX = d - 50
@@ -507,7 +507,7 @@ class Pedro(Gtk.Window):
 
         ###########################################################
                
-        boxV = Gtk.VBox()
+        boxHall = Gtk.HBox()
         boxH = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         
         servboxH = Gtk.HBox()
@@ -552,18 +552,34 @@ class Pedro(Gtk.Window):
         boxVSpeed.pack_start(frameSpeed, False, False, 10)
         boxHFrmSpd.pack_start(boxVSpeed, True, True, 10)
 
-        servboxV.pack_start(servboxH, False, False, 0)
-        servboxV.pack_start(boxHFrmSpd, True, True, 0)
-        frmSpeed.add(servboxV)
+        ###########################################################
+        align = Gtk.Alignment()
+        pbar = Gtk.ProgressBar()
+        align.add(pbar)
 
-        box5 = Gtk.VBox()
+        boxHBar = Gtk.HBox()
+        boxVBar = Gtk.VBox()
+
+        boxH1Bar = Gtk.HBox()
+        boxH2Bar = Gtk.HBox()
+        boxHBar.pack_start(boxH1Bar, False, False, 10)
+        boxHBar.pack_start(align, True, True, 0)
+        boxHBar.pack_start(boxH2Bar, False, False, 10)
+        
+        memoryLabel = Gtk.Label("Recording memory used: 0%")
+        boxVBar.pack_start(memoryLabel, False, False, 10)
+        boxVBar.pack_start(boxHBar, False, False, 10)
+        ###########################################################
+
+
+      
         scrolled1 = Gtk.ScrolledWindow()
         scrolled1.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         box7 = Gtk.HBox()
         #boxH.pack_start(box7, False, False, 10)
         boxH.pack_start(frmSpeed, False, False, 10)
         #boxH.set_size_request(width/2, height/3)
-        boxV.pack_start(boxH, False, False, 10)
+        boxHall.pack_start(boxH, False, False, 10)
 
         wdth = width/4
         hght = height/4
@@ -661,33 +677,24 @@ class Pedro(Gtk.Window):
         buttonClear = Gtk.Button(name="button", label="Clear")
         buttonClear.connect("clicked", self.on_clear_clicked)
 
+        box5 = Gtk.VBox() 
+
         box5.pack_start(buttonRecord, False, False, 0)
-        box5.pack_start(buttonPLay, False, False, 10)
-        box5.pack_start(buttonPause, False, False, 10)
+        box5.pack_start(buttonPLay, False, False, 20)
+        box5.pack_start(buttonPause, False, False, 20)
         box5.pack_start(buttonStop, False, False, 0)
-        box5.pack_start(buttonRepeat, False, False, 10)
+        box5.pack_start(buttonRepeat, False, False, 20)
         box5.pack_start(buttonClear, False, False, 0)
-        boxH.pack_start(box5, True, True, 0)
+        #boxH.pack_start(box5, True, True, 0)
 
-        box6 = Gtk.HBox()
-        boxH.pack_start(box6, False, False, 10)
+        #box6 = Gtk.HBox()
+        #boxH.pack_start(box6, False, False, 10)
 
-        ###########################################################
-        align = Gtk.Alignment()
-        pbar = Gtk.ProgressBar()
-        align.add(pbar)
-
-        boxHBar = Gtk.HBox()
-
-        boxH1Bar = Gtk.HBox()
-        boxH2Bar = Gtk.HBox()
-        boxHBar.pack_start(boxH1Bar, False, False, 10)
-        boxHBar.pack_start(align, True, True, 0)
-        boxHBar.pack_start(boxH2Bar, False, False, 10)
-        
-        memoryLabel = Gtk.Label("Recording memory used: 0%")
-        boxV.pack_start(memoryLabel, False, False, 10)
-        boxV.pack_start(boxHBar, False, False, 10)
+        servboxV.pack_start(servboxH, False, False, 0)
+        servboxV.pack_start(boxHFrmSpd, False, False, 0)
+        servboxV.pack_start(box5, False, False, 0)
+        servboxV.pack_start(boxVBar, False, False, 0)
+        frmSpeed.add(servboxV)
 
         ###########################################################
 
@@ -727,11 +734,11 @@ class Pedro(Gtk.Window):
         boxVdraw.pack_start(boxV1, True, True, 0)
         boxVdraw.pack_start(boxV2, False, False, 0)
 
-        boxV.pack_start(boxVdraw, True, True, 10)
+        boxHall.pack_start(boxVdraw, True, True, 10)
 
         ###################################################
         
-        self.add(boxV)
+        self.add(boxHall)
         global initApp
         initApp = True
 
@@ -799,12 +806,12 @@ class Pedro(Gtk.Window):
         # Base
         ctx.save()
         ctx.translate(OriginTopX, OriginTopY)
-        ctx.rotate(base)
+        ctx.rotate(pi - base)
     
-        ctx.rectangle(-0.5*SIZE_PEDRO, 0.5*SIZE_PEDRO, SIZE_PEDRO, -SIZE_PEDRO)
-    
-        ctx.rectangle(0, -0.25*SIZE_PEDRO, - r0, 0.5*SIZE_PEDRO)
-    
+        ctx.rectangle(-0.5*SIZE, 0.5*SIZE, SIZE, -SIZE)
+        
+        ctx.rectangle(0, -0.25*SIZE, - r0, 0.5*SIZE)    
+
         ctx.restore()
         ctx.fill()
         # ctx.stroke()
