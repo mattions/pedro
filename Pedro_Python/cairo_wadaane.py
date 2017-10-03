@@ -255,7 +255,7 @@ def draw_text(ctx):
             cairo.FONT_WEIGHT_NORMAL)
     ctx.set_font_size(TXT_SIZE)
     ctx.move_to(0.01*SIZE, TXT_SIZE)
-    ctx.show_text('Base: ' + str(base))
+    ctx.show_text('Base: ' + str(int(degrees(base))))
     ctx.move_to(0.01*SIZE, 2*TXT_SIZE)
     ctx.show_text('Forearm: '+ str(int(degrees(forearm))))
     ctx.move_to(0.01*SIZE, 3*TXT_SIZE)
@@ -295,7 +295,7 @@ def mouse_dragged(self, e):
         # if e.x < Width - 0.5*SIZE and e.x > Width - SIZE and e.y > 0.5*SIZE and e.y < d + 0.5*SIZE:
         baseX = int(180*(e.x - 0.5*SIZE)/(2*d))
         print("Percentage: " + str(baseX))
-        send_angles( baseX, forearm, hand, grip)
+        send_angles( radians(baseX), forearm, hand, grip)
             # xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, d + 0.5*SIZE - e.y)
         # else:
             # outOfReach = True
