@@ -26,7 +26,7 @@ mXL = 0
 mYL = 0
 mXR = 0
 mYR = 0
-mXik = 0
+mXik = 0.5*SIZE
 mYik = 0
 
 OriginSideX = d 
@@ -34,8 +34,8 @@ OriginSideY = d + SIZE
 OriginTopX = 2*d + OriginSideX + SIZE 
 OriginTopY = d + SIZE
 
-Width = 4*d + 4*SIZE
-Height = OriginTopY + SIZE
+Width = 2*d + 2*SIZE
+Height = OriginTopY + 2.3*SIZE
 
 originForearmX = OriginSideX 
 originForearmY = OriginSideY - 0.5*length_Base
@@ -46,6 +46,7 @@ originHandY = originForearmY
 base = 0
 forearm = 0
 hand = 0
+grip = 0
 
 isForearm = True
 outOfReach = False
@@ -61,7 +62,7 @@ def draw(da, ctx):
     
     draw_extra(ctx)
     draw_pedro_side(ctx)
-    draw_pedro_top(ctx)
+    # draw_pedro_top(ctx)
     draw_text(ctx)
             
 # ---------------------------------
@@ -69,44 +70,54 @@ def draw(da, ctx):
 # ---------------------------------
 def draw_extra(ctx):
     # Vertical separator
-    ctx.move_to(-1.5*SIZE + Width/2, 0) #
-    ctx.rel_line_to(0, Height)
-    ctx.stroke()
+    # ctx.move_to(-1.5*SIZE + Width/2, 0) #
+    # ctx.rel_line_to(0, Height)
+    # ctx.stroke()
     
     # Z control rectangle
-    ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
+    # ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
+    # ctx.fill()
+    # # ctx.stroke()
+
+    ctx.rectangle(0.25*SIZE, OriginSideY + 1.5*SIZE, 2*d + 0.5*SIZE, - 0.5*SIZE)
+    # ctx.fill()
+    ctx.stroke()
+    
+    ctx.rectangle(mXik - 0.25*SIZE, OriginSideY + SIZE, 0.5*SIZE, 0.5*SIZE)
+    ctx.set_source_rgb(1, 0, 0)
     ctx.fill()
-    # ctx.stroke()
+    ctx.set_source_rgb(0, 0, 0)
+    ctx.stroke()
     
     # Top View limits
 #    ctx.new_path()
-    ctx.set_dash([SIZE/4.0, SIZE/4.0], 0)
-    if (d*d - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(d*d-Z*Z), pi, 2*pi)
-    if (c*c - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(c*c-Z*Z), pi, 2*pi)
-    ctx.close_path()
-    ctx.stroke()
+    # ctx.set_dash([SIZE/4.0, SIZE/4.0], 0)
+    # if (d*d - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(d*d-Z*Z), pi, 2*pi)
+    # if (c*c - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(c*c-Z*Z), pi, 2*pi)
+    # ctx.close_path()
+    # ctx.stroke()
     
 
-    ctx.set_dash([], 0)
+    # ctx.set_dash([], 0)
     if not outOfReach:
         global r0, Z0
         r0 = r
         Z0 = Z
     
     # Draw target and vertical slider
-    if not lockHandAndForearm:
-        ctx.rectangle(
-            OriginSideX + r0,
-            OriginSideY - 0.5*SIZE - Z0,   # 
-            0.05*SIZE, 0.05*SIZE)
-        ctx.stroke()
+    # if not lockHandAndForearm:
+        # ctx.rectangle(
+            # OriginSideX + r0,
+            # OriginSideY - 0.5*SIZE - Z0,   # 
+            # 0.05*SIZE, 0.05*SIZE)
+        # ctx.stroke()
         
-        ctx.new_path()
-        ctx.move_to(Width - SIZE, OriginSideY - 0.5*SIZE - Z0)
-        ctx.rel_line_to(0.5*SIZE, 0)
+        # ctx.new_path()
+        # ctx.move_to(Width - SIZE, OriginSideY - 0.5*SIZE - Z0)
+        # ctx.rel_line_to(0.5*SIZE, 0)
 
-        ctx.set_source_rgb(1, 0, 0)
-        ctx.stroke()
+        # ctx.set_source_rgb(1, 0, 0)
+        # ctx.stroke()
     
 
 # ---------------------------------
@@ -244,7 +255,7 @@ def draw_text(ctx):
             cairo.FONT_WEIGHT_NORMAL)
     ctx.set_font_size(TXT_SIZE)
     ctx.move_to(0.01*SIZE, TXT_SIZE)
-    ctx.show_text('Base: ' + str(int(degrees(base))))
+    ctx.show_text('Base: ' + str(base))
     ctx.move_to(0.01*SIZE, 2*TXT_SIZE)
     ctx.show_text('Forearm: '+ str(int(degrees(forearm))))
     ctx.move_to(0.01*SIZE, 3*TXT_SIZE)
@@ -272,26 +283,32 @@ def mouse_dragged(self, e):
     global originHandX, originHandY
     global outOfReach
     
-    if e.x > -1.5*SIZE + Width/2 and e.x < Width - 1.5*SIZE: 
+    #if e.x > -1.5*SIZE + Width/2 and e.x < Width - 1.5*SIZE: 
+    # if e.x > 1.5*SIZE and e.x < Width - 1.5*SIZE: 
+        
+        
+        #xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, Z)
+    # else:
+    if e.x > 0.5*SIZE and e.x < 2*d + 0.5*SIZE and e.y > OriginSideY + SIZE and e.y < OriginSideY + 1.5*SIZE:
         mXik = e.x
         mYik = e.y
-        xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, Z)
-    else:
-        if e.x > Width - 1.5*SIZE :
-            if e.x < Width - 0.5*SIZE and e.x > Width - SIZE and e.y > 0.5*SIZE and e.y < d + 0.5*SIZE:
-                xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, d + 0.5*SIZE - e.y)
-            else:
-                outOfReach = True
-        elif isForearm:
-            mXL = e.x
-            mYL = e.y
-            xyzToServoAngles(1, mXL - originForearmX, mYL - originForearmY, Z)
-            
-        else :
-            mXR = e.x
-            mYR = e.y
-            xyzToServoAngles(2, mXR - originHandX, mYR - originHandY, Z)
+        # if e.x < Width - 0.5*SIZE and e.x > Width - SIZE and e.y > 0.5*SIZE and e.y < d + 0.5*SIZE:
+        baseX = int(180*(e.x - 0.5*SIZE)/(2*d))
+        print("Percentage: " + str(baseX))
+        send_angles( baseX, forearm, hand, grip)
+            # xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, d + 0.5*SIZE - e.y)
+        # else:
+            # outOfReach = True
+    elif isForearm:
+        mXL = e.x
+        mYL = e.y
+        xyzToServoAngles(1, mXL - originForearmX, mYL - originForearmY, Z)
         
+    else :
+        mXR = e.x
+        mYR = e.y
+        xyzToServoAngles(2, mXR - originHandX, mYR - originHandY, Z)
+    
     originHandX = originForearmX + (length_Forearm)*cos(forearm - pi)
     originHandY = originForearmY + (length_Forearm)*sin(forearm - pi) 
     drawingarea.queue_draw()
@@ -380,7 +397,7 @@ def xyzToServoAngles(choice,x, y, z):
         send_angles(base0, forearm0, -hand0, 0)
 
 def set_angles(b, f, h, g):
-    global base, forearm, hand
+    global base, forearm, hand, grip
     
     base = b
     forearm = f
