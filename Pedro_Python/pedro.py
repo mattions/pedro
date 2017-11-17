@@ -107,7 +107,7 @@ THR_LOCK = threading.Lock()
 global drawingarea
 
 SIZE = 50
-SIZE_PEDRO = screen.get_width()/60
+SIZE_PEDRO = screen.get_width()/15
 TXT_SIZE = SIZE/4
 length_Forearm = 2*SIZE_PEDRO
 length_Hand = 0.93*length_Forearm
@@ -128,7 +128,7 @@ mYR = 0
 mXik = 0.5*SIZE
 mYik = 0
 
-OriginSideX = d - 50
+OriginSideX = d
 OriginSideY = d + SIZE
 OriginTopX = 2*d + OriginSideX + SIZE
 OriginTopY = d + SIZE
@@ -474,7 +474,7 @@ class Pedro(Gtk.Window):
         
         hb = Gtk.HeaderBar()
         #hb.set_show_close_button(True)
-        hb.props.title = "Pedro Petit Robot"
+        hb.props.title = "PEDRO - Programming EDucational RObotic"
         self.set_titlebar(hb)
         color_widget(self, 'White')
         #self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.1)
@@ -568,10 +568,8 @@ class Pedro(Gtk.Window):
         
         memoryLabel = Gtk.Label("Recording memory used: 0%")
         boxVBar.pack_start(memoryLabel, False, False, 10)
-        boxVBar.pack_start(boxHBar, False, False, 10)
+        boxVBar.pack_start(boxHBar, False, False, 40)
         ###########################################################
-
-
       
         scrolled1 = Gtk.ScrolledWindow()
         scrolled1.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -579,7 +577,25 @@ class Pedro(Gtk.Window):
         #boxH.pack_start(box7, False, False, 10)
         boxH.pack_start(frmSpeed, False, False, 10)
         #boxH.set_size_request(width/2, height/3)
-        boxHall.pack_start(boxH, False, False, 10)
+        
+
+        boxVa = Gtk.VBox()
+        boxVb = Gtk.VBox()
+
+        """
+        boxH1 = Gtk.HBox()
+        boxH2 = Gtk.HBox()
+        boxH.pack_start(boxH1, False, False, 10)
+        boxH.pack_start(frameDraw, True, True, 0)
+        boxH.pack_start(boxH2, False, False, 10)
+        boxV1.pack_start(boxH, True, True, 50)
+        boxVdraw.pack_start(boxV1, True, True, 0)
+        boxVdraw.pack_start(boxV2, False, False, 0)
+        boxHall.pack_start(boxVdraw, True, True, 10)
+        """
+
+        boxVa.pack_start(boxH, False, False, 40)
+        boxHall.pack_start(boxVa, False, False, 10)
 
         wdth = width/4
         hght = height/4
@@ -709,11 +725,7 @@ class Pedro(Gtk.Window):
         drawing_event_box.connect('button-press-event', self.mouse_pressed)
         drawing_event_box.connect('motion-notify-event', self.mouse_dragged)
     
-        check_useIk = Gtk.CheckButton("Lock Forearm & Hand")
-        check_useIk.connect("toggled", self.check_toggled)
-    
         boxVDraw = Gtk.VBox()
-        boxVDraw.pack_start(check_useIk, False, True, 0)
         boxVDraw.pack_start(drawing_event_box, True, True, 0)
 
         frameDraw = Gtk.Frame()
@@ -721,7 +733,6 @@ class Pedro(Gtk.Window):
 
         boxH = Gtk.HBox()
         boxV1 = Gtk.VBox()
-        boxV2 = Gtk.VBox()
 
         boxH1 = Gtk.HBox()
         boxH2 = Gtk.HBox()
@@ -729,10 +740,9 @@ class Pedro(Gtk.Window):
         boxH.pack_start(frameDraw, True, True, 0)
         boxH.pack_start(boxH2, False, False, 10)
 
-        boxV1.pack_start(boxH, True, True, 10)
+        boxV1.pack_start(boxH, True, True, 40)
 
         boxVdraw.pack_start(boxV1, True, True, 0)
-        boxVdraw.pack_start(boxV2, False, False, 0)
 
         boxHall.pack_start(boxVdraw, True, True, 10)
 
@@ -753,68 +763,9 @@ class Pedro(Gtk.Window):
         ctx.set_line_width(SIZE/20)
         ctx.set_line_join(cairo.LINE_JOIN_ROUND)
     
-        #self.draw_extra(ctx)
         draw_pedro_side(ctx)
-        self.draw_pedro_top(ctx)
         self.draw_text(ctx)
 
-    # ---------------------------------
-    # draw_extra
-    # ---------------------------------
-    def draw_extra(self,ctx):
-        # Vertical separator
-        ctx.move_to(-1.5*SIZE + Width/2, 0) #
-        ctx.rel_line_to(0, Height)
-        ctx.stroke()
-    
-        # Z control rectangle
-        ctx.rectangle(Width - 0.5*SIZE, 0.5*SIZE, - 0.5*SIZE, d )
-        ctx.fill()
-    
-        # Top View limits
-        ctx.set_dash([SIZE/4.0, SIZE/4.0], 0)
-        if (d*d - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(d*d-Z*Z), pi, 2*pi)
-        if (c*c - Z*Z)>=0: ctx.arc(OriginTopX, OriginTopY, sqrt(c*c-Z*Z), pi, 2*pi)
-        ctx.close_path()
-        ctx.stroke()
-    
-        ctx.set_dash([], 0)
-        if not outOfReach:
-            global r0, Z0
-            r0 = r
-            Z0 = Z
-
-        # Draw target and vertical slider
-        if not lockHandAndForearm:
-            ctx.rectangle(
-                OriginSideX + r0,
-                OriginSideY - 0.5*SIZE - Z0,   #
-                0.05*SIZE, 0.05*SIZE)
-            ctx.stroke()
-                      
-            ctx.new_path()
-            ctx.move_to(Width - SIZE, OriginSideY - 0.5*SIZE - Z0)
-            ctx.rel_line_to(0.5*SIZE, 0)
-                      
-            ctx.set_source_rgb(1, 0, 0)
-            ctx.stroke()
-
-    # ---------------------------------
-    # draw_pedro_top
-    # ---------------------------------
-    def draw_pedro_top(self, ctx):
-        # Base
-        ctx.save()
-        ctx.translate(OriginTopX, OriginTopY)
-        ctx.rotate(pi - base)
-    
-        ctx.rectangle(-0.5*SIZE, 0.5*SIZE, SIZE, -SIZE)
-        
-        ctx.rectangle(0, -0.25*SIZE, - r0, 0.5*SIZE)    
-
-        ctx.restore()
-        ctx.fill()
-        # ctx.stroke()
 
     # ---------------------------------
     # draw_text
@@ -824,15 +775,13 @@ class Pedro(Gtk.Window):
                 cairo.FONT_WEIGHT_NORMAL)
         ctx.set_font_size(TXT_SIZE)
         ctx.move_to(0.01*SIZE, 1.5*TXT_SIZE)
-        ctx.show_text('Base: ' + str(int(degrees(base))))
+        ctx.show_text(' Forearm: ' + str(int(degrees(forearm))))
         ctx.move_to(0.01*SIZE, 3.5*TXT_SIZE)
-        ctx.show_text('Forearm: '+ str(int(degrees(forearm))))
-        ctx.move_to(0.01*SIZE, 5.5*TXT_SIZE)
-        ctx.show_text('Hand: '+ str(int(degrees(-hand))))
+        ctx.show_text(' Hand: '+ str(int(degrees(-hand))))
         if outOfReach:
             ctx.set_source_rgb(1, 0, 0)
             ctx.move_to(0.01*SIZE, 4*TXT_SIZE)
-            ctx.show_text('OUT OF REACH !!!')
+            #ctx.show_text('OUT OF REACH !!!')
 
     # ---------------------------------
     # mouse_pressed
@@ -875,13 +824,6 @@ class Pedro(Gtk.Window):
         originHandY = originForearmY + (length_Forearm)*sin(forearm - pi)
         drawingarea.queue_draw()
 
-    # ---------------------------------
-    # check_toggled
-    # ---------------------------------
-    def check_toggled(self, e):
-        global lockHandAndForearm
-        lockHandAndForearm ^=1
-
     # Inverse Kinematics:
     # From Cartesian to Servo Angles
     # ---------------------------------
@@ -916,9 +858,6 @@ class Pedro(Gtk.Window):
                 base0 = atan2(y,x) + pi
                 self.send_angles(1, int(degrees(base0)))
 
-                #if not lockHandAndForearm:
-                    #forearm0 = -acos((a*a + R*R - b*b)/(2*a*R)) - acos(r/R) + pi
-                    #hand0 = -acos((a*a + b*b - R*R)/(2*a*b)) + pi/4
             else:
                 outOfReach = True
     
@@ -988,7 +927,7 @@ class Pedro(Gtk.Window):
     # btnSpeed
     # ---------------------------------
     def btnSpeed(self, widget, data=None):
-       print "%s was toggled %s" % (data, ("OFF", "ON")[widget.get_active()])
+       print ("%s was toggled %s" % (data, ("OFF", "ON")[widget.get_active()]))
 
     # ---------------------------------
     # update_speed
