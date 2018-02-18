@@ -17,8 +17,6 @@ import serial
 import gi
 import glib
 import time
-import cairo
-from math import pi, atan2, sin, cos, degrees, acos, asin, sqrt
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import threading
@@ -42,6 +40,15 @@ mouseClick = ""
 
 global ser
 ser = None
+
+global recFile
+recFile = None
+
+global testBool
+testBool = True
+
+global recButton
+recButton = False
 
 global lockServo1, lockServo2, lockServo3, lockServo4
 lockServo1 = False
@@ -67,8 +74,8 @@ serv2_chg = False
 serv3_chg = False
 serv4_chg = False
 
-global servo_change
-servo_change = False
+#global servo_change
+#servo_change = False
 
 global old_mouse1, old_mouse2, old_mouse3, old_mouse4
 old_mouse1 = None
@@ -100,56 +107,6 @@ global initApp
 initApp = False
 
 THR_LOCK = threading.Lock()
-
-#=======================================
-# For cairo
-#=======================================
-global drawingarea
-
-SIZE = 50
-SIZE_PEDRO = screen.get_width()/15
-TXT_SIZE = SIZE/4
-length_Forearm = 2*SIZE_PEDRO
-length_Hand = 0.93*length_Forearm
-length_EndPoint = 0.28*length_Forearm
-length_Base = 0.5*length_Forearm
-
-Z = 0
-Z0 = Z
-d = length_Forearm + length_Hand + length_EndPoint
-c = length_Forearm - length_Hand - length_EndPoint
-r = length_Forearm
-r0 = r
-
-mXL = 0
-mYL = 0
-mXR = 0
-mYR = 0
-mXik = 0.5*SIZE
-mYik = 0
-
-OriginSideX = d
-OriginSideY = d + SIZE
-OriginTopX = 2*d + OriginSideX + SIZE
-OriginTopY = d + SIZE
-
-Width = 4*d + 4*SIZE
-Height = OriginTopY + SIZE
-
-originForearmX = OriginSideX
-originForearmY = OriginSideY - 0.5*length_Base
-originHandX = originForearmX - length_Forearm
-originHandY = originForearmY
-
-base = 0
-forearm = 0
-hand = 0
-
-isForearm = True
-outOfReach = False
-lockHandAndForearm = False
-#=======================================
-
 
 #=======================================
 # Update_Serial
@@ -215,18 +172,37 @@ class Update_Serial():
 class Send_Cmd(threading.Thread):
     pause = threading.Event()
     
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self._stopevent = threading.Event( )
+
+
+    def join(self, *args):
+        """ Stop the thread and wait for it to end. """
+        self._stopevent.set( )
+        threading.Thread.join(self, timeout=None)
+
     # ---------------------------------
     # start
     # ---------------------------------
     def start(self, *args):
         super(Send_Cmd, self).start()
+
+    # ---------------------------------
+    # stop
+    # ---------------------------------
+    def stop(self, *args):
+        self.pause.stop()
+
+    def __del__(self):
+        print ("goodbye!")
     
     # ---------------------------------
     # run
     # ---------------------------------
     def run(self):
         #global ser
-        global servo_change
+        #global servo_change
         global serv1_chg, serv2_chg, serv3_chg, serv4_chg
         # if there is stuff in the queue...
         while not close_app:
@@ -247,6 +223,9 @@ class Send_Cmd(threading.Thread):
     # send_cmd
     # ---------------------------------
     def update_servo(self):
+        global recFile
+        global recButton
+        global testBool
         if serv1_chg:
             if servocmd == 11 and int(serv1Lbl.get_label()) < 180:
                 serv1Lbl.set_label(str(int(serv1Lbl.get_label()) + 1))
@@ -254,6 +233,10 @@ class Send_Cmd(threading.Thread):
             elif servocmd == 22 and int(serv1Lbl.get_label()) > 0:
                 serv1Lbl.set_label(str(int(serv1Lbl.get_label()) - 1))
                 self.send_cmd(1, int(serv1Lbl.get_label()))
+            if recButton:
+                recFile = open("record_pedro.log", 'a' )
+                recFile.write("a" + str(serv1Lbl.get_label()) + " ")
+                recFile.close()
         elif serv2_chg:
             if servocmd == 11 and int(serv2Lbl.get_label()) < 180:
                 serv2Lbl.set_label(str(int(serv2Lbl.get_label()) + 1))
@@ -261,6 +244,10 @@ class Send_Cmd(threading.Thread):
             elif servocmd == 22 and int(serv2Lbl.get_label()) > 0:
                 serv2Lbl.set_label(str(int(serv2Lbl.get_label()) - 1))
                 self.send_cmd(2, int(serv2Lbl.get_label()))
+            if recButton:
+                recFile = open("record_pedro.log", 'a' )
+                recFile.write("b" + str(serv2Lbl.get_label()) + " ")
+                recFile.close()
         elif serv3_chg:
             if servocmd == 11 and int(serv3Lbl.get_label()) < 180:
                 serv3Lbl.set_label(str(int(serv3Lbl.get_label()) + 1))
@@ -268,6 +255,10 @@ class Send_Cmd(threading.Thread):
             elif servocmd == 22 and int(serv3Lbl.get_label()) > 0:
                 serv3Lbl.set_label(str(int(serv3Lbl.get_label()) - 1))
                 self.send_cmd(3, int(serv3Lbl.get_label()))
+            if recButton:
+                recFile = open("record_pedro.log", 'a' )
+                recFile.write("c" + str(serv3Lbl.get_label()) + " ")
+                recFile.close()
         elif serv4_chg:
             if servocmd == 11 and int(serv4Lbl.get_label()) < 180:
                 serv4Lbl.set_label(str(int(serv4Lbl.get_label()) + 1))
@@ -275,1515 +266,10 @@ class Send_Cmd(threading.Thread):
             elif servocmd == 22 and int(serv4Lbl.get_label()) > 0:
                 serv4Lbl.set_label(str(int(serv4Lbl.get_label()) - 1))
                 self.send_cmd(4, int(serv4Lbl.get_label()))
-
-#=======================================
-# Pedro
-#=======================================
-class About(Gtk.Window):
-
-    def __init__(self):
-        Gtk.Window.__init__(self,type=Gtk.WindowType.TOPLEVEL)
-        hb = Gtk.HeaderBar()
-        hb.props.title = self.__class__.__name__
-        self.set_titlebar(hb)
-        self.set_size_request(screen.get_width()/3, screen.get_height()/3)
-
-        width, height = self.get_size()
-        self.set_resizable(False)
-        buttonClose = Gtk.Button("Close")
-        buttonClose.connect("clicked", self.on_close_clicked)
-        hb.pack_end(buttonClose)
-
-        global drawingarea
-        drawingarea = Gtk.DrawingArea()
-        drawingarea.connect('draw', self.draw)
-    
-        drawing_event_box = Gtk.EventBox()
-        drawing_event_box.add(drawingarea)
-
-        self.SIZE = 50
-        self.SIZE_PEDRO = screen.get_width()/45
-        self.length_Forearm = 2*self.SIZE_PEDRO
-        self.length_Hand = 0.93*self.length_Forearm
-        self.length_EndPoint = 0.28*self.length_Forearm
-        self.length_Base = 0.5*self.length_Forearm
-
-        self.d = self.length_Forearm + self.length_Hand + self.length_EndPoint
-
-        self.OriginSideX = width/2
-        self.OriginSideY = self.length_Forearm + 2*self.length_EndPoint
-
-        self.originForearmX = self.OriginSideX
-        self.originForearmY = self.OriginSideY - 0.5*self.length_Base
-        self.originHandX = self.originForearmX - self.length_Forearm
-        self.originHandY = self.originForearmY
-
-        self.base = 0
-        self.forearm = 0
-        self.hand = 0
-
-        boxH = Gtk.HBox()
-        boxV = Gtk.VBox()
-        boxV2 = Gtk.VBox()
-        pedro_title = Gtk.Label("Pedro Petit Robot Open Source Software")
-        pedro_vers = Gtk.Label("1.0")
-        pedro_soft = Gtk.Label("Pedro Pedro Petit Software is the graphical interface of Pedro Petit Robot")
-        pedro_web = Gtk.Label("Project Page: https://hackaday.io/project/26119/")
-        pedro_email = Gtk.Label("pedropetitrobot@gmail.com")
-        pedro_copy = Gtk.Label("Copyright \xc2\xa9 2017 The Pedro Petit Robot Team")
-        boxV2.pack_start(pedro_title, False, True, 0)
-        boxV2.pack_start(pedro_vers, False, True, 0)
-        boxV2.pack_start(pedro_soft, False, True, 0)
-        boxV2.pack_start(pedro_web, False, True, 0)
-        boxV2.pack_start(pedro_email, False, True, 0)
-        boxV2.pack_start(pedro_copy, False, True, 0)
-        boxV.pack_start(drawing_event_box, True, True, 0)
-        boxV.pack_start(boxV2, False, True, 0)
-        self.add(boxV)
-
-
-    def on_close_clicked(self,  action):
-        self.destroy()
-
-    # ---------------------------------
-    # draw
-    # ---------------------------------
-    def draw(self, da, ctx):
-        ctx.set_source_rgb(0, 0, 0)
-        ctx.set_line_width(self.SIZE/20)
-        ctx.set_line_join(cairo.LINE_JOIN_ROUND)
-    
-        self.draw_pedro_side(ctx)
-
-    # ---------------------------------
-    # draw_pedro_side
-    # ---------------------------------
-    def draw_pedro_side(self,ctx):
-    
-        ctx.save()
-    
-        self.side_base(ctx)
-        self.side_forearm(ctx)
-        self.side_hand(ctx)
-        self.side_endpoint(ctx)
-    
-        ctx.restore()
-
-    # ---------------------------------
-    # side_base
-    # ---------------------------------
-    def side_base(self,ctx):
-        ctx.set_source_rgb(0, 0, 0)
-    
-        ctx.rectangle(
-            self.OriginSideX - 0.5*(self.length_Base + 0.5*self.SIZE_PEDRO),
-            self.OriginSideY + 0.5*self.length_Base,
-            self.length_Base + 0.5*self.SIZE_PEDRO, - self.length_Base)
-        ctx.fill()
-                  
-        ctx.set_source_rgb(1, 0, 0)
-        ctx.arc(self.OriginSideX, self.OriginSideY - 0.5*self.length_Base, 0.5*(self.length_Base + 0.5*self.SIZE_PEDRO), pi, 0)
-                  
-        ctx.fill()
-        ctx.set_source_rgb(0, 0, 0)
-
-    # ---------------------------------
-    # side_forearm
-    # ---------------------------------
-    def side_forearm(self,ctx):
-        ctx.translate(self.originForearmX, self.originForearmY)
-    
-        ctx.rotate(self.forearm)
-        ctx.arc(0 , 0, 0.4*(self.length_Base + 0.5*self.SIZE_PEDRO), 0, 2*pi)
-        ctx.fill()
-    
-        ctx.rectangle(0, -0.125*self.length_Forearm, -self.length_Forearm, 0.25*self.length_Forearm)
-        ctx.fill()
-    
-        ctx.set_source_rgb(1, 0, 0)
-        ctx.arc(0 , 0, 0.05*self.length_Forearm, 0, 2*pi)
-        ctx.fill()
-    
-        ctx.restore()
-        ctx.set_source_rgb(0, 0, 0)
-
-    # ---------------------------------
-    # side_hand
-    # ---------------------------------
-    def side_hand(self,ctx):
-        ctx.save()
-        ctx.translate(self.originHandX, self.originHandY)
-    
-        ctx.rotate(self.forearm)
-    
-        ctx.rotate(self.hand)
-        ctx.arc(0 , 0, 0.4*(self.length_Base + 0.5*self.SIZE_PEDRO), 0, 2*pi)
-        ctx.fill()
-    
-        ctx.save()
-        ctx.rotate(-pi/4)
-        ctx.rectangle(
-            0,
-            -0.0625*self.length_Hand,
-            0.6*self.length_Hand,
-            0.125*self.length_Hand)
-        
-        ctx.rectangle(
-            0.6*self.length_Hand,
-            -0.125*self.length_Hand,
-            0.4*self.length_Hand,
-            0.25*self.length_Hand)
-                  
-        ctx.fill()
-                  
-        ctx.set_source_rgb(1, 0, 0)
-        ctx.arc(0 , 0, 0.05*self.length_Forearm, 0, 2*pi)
-        ctx.fill()
-
-
-    # ---------------------------------
-    # side_endpoint
-    # ---------------------------------
-    def side_endpoint(self,ctx):
-        ctx.translate(self.length_Hand, 0)
-        ctx.set_source_rgb(1, 0, 0)
-    
-        ctx.new_path()
-        ctx.move_to(0, -0.5*0.25*self.length_Hand)
-        ctx.rel_line_to(self.length_EndPoint, 0.4*0.25*self.length_Hand)
-        ctx.rel_line_to(-self.length_EndPoint, 0)
-        ctx.close_path()
-    
-        ctx.move_to(0, 0.5*0.25*self.length_Hand)
-        ctx.rel_line_to(self.length_EndPoint, -0.4*0.25*self.length_Hand)
-        ctx.rel_line_to(-self.length_EndPoint, 0)
-        ctx.close_path()
-    
-        ctx.fill()
-        ctx.restore()
-        ctx.set_source_rgb(0, 0, 0)
-
-
-#=======================================
-# Pedro
-#=======================================
-class Pedro(Gtk.Window):
-
-    def __init__(self):
-        Gtk.Window.__init__(self)
-        
-        hb = Gtk.HeaderBar()
-        #hb.set_show_close_button(True)
-        hb.props.title = "PEDRO - Programming EDucational RObotic"
-        self.set_titlebar(hb)
-        color_widget(self, 'White')
-        #self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.1)
-        #self.set_resizable(False)
-        self.mouseClick = False
-        width, height = self.get_size()
-        sepa = Gtk.VSeparator()
-        buttonClose = Gtk.Button("Close")
-        buttonClose.connect("clicked", self.on_close_clicked)
-        buttonAbout = Gtk.Button("About")
-        buttonAbout.connect("clicked", self.on_about_clicked)
-        connected = Gtk.Label("Connected : ")
-        btnUpdate = Gtk.Button("Serial")
-        btnUpdate.connect("clicked", self.on_serial_updated)
-
-        hb.pack_start(connected)
-        hb.pack_start(pedro_combo)
-        hb.pack_start(btnUpdate)
-
-        #serial_port = Serial_Port()
-        #serial_port.serial_ports()
-
-        pedro_combo.connect("changed", self.on_pedro_combo_changed)
-        hb.pack_end(buttonClose)
-        hb.pack_end(buttonAbout)
-
-        vpaned = Gtk.VPaned()
-        hpaned = Gtk.HPaned()
-        #vpaned.add1(hpaned) 
-
-        ###########################################################
-               
-        boxHall = Gtk.HBox()
-        boxH = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        
-        servboxH = Gtk.HBox()
-        servboxV = Gtk.VBox()
-
-        servboxV1 = Gtk.VBox()
-        servboxV2 = Gtk.VBox()
-        servboxV3 = Gtk.VBox()
-        servboxV4 = Gtk.VBox()
-        
-        boxHSpeed = Gtk.HBox()
-        boxVSpeed = Gtk.VBox()
-        boxHFrmSpd = Gtk.HBox()
-
-        speedLabel = Gtk.Label("Speed: ")
-        ad1 = Gtk.Adjustment(1, 1, 4, 5, 10, 0)
-        self.speed_scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL, adjustment=ad1)
-        self.speed_scale.set_digits(0)
-        self.speed_scale.set_hexpand(True)
-        self.speed_scale.set_valign(Gtk.Align.START)
-        self.speed_scale.connect("value-changed", self.update_speed)
-        #boxHSpeed.pack_start(speedLabel, False, False, 0)
-        #boxHSpeed.pack_start(self.speed_scale, True, True, 0)
-        
-        btnSpeed1 = Gtk.RadioButton(label="1")
-        btnSpeed1.connect("toggled", self.btnSpeed, "button Speed 1")
-        btnSpeed2 = Gtk.RadioButton.new_with_label_from_widget(btnSpeed1, "2")
-        btnSpeed2.set_active(False)
-        btnSpeed2.connect("toggled", self.btnSpeed, "button Speed 2")
-        btnSpeed3 = Gtk.RadioButton.new_with_label_from_widget(btnSpeed1, "3")
-        btnSpeed3.set_active(False)
-        btnSpeed3.connect("toggled", self.btnSpeed, "button Speed 3")
-        boxHSpeed.pack_start(btnSpeed1, True, False, 0)
-        boxHSpeed.pack_start(btnSpeed2, True, False, 10)
-        boxHSpeed.pack_start(btnSpeed3, True, False, 10)
-
-        frameSpeed = Gtk.Frame()
-        frmSpeed = Gtk.Frame()
-        frmSpeed.set_shadow_type(Gtk.ShadowType.ETCHED_OUT)
-        frameSpeed.set_label("Speed")
-        frameSpeed.add(boxHSpeed)
-        boxVSpeed.pack_start(frameSpeed, False, False, 10)
-        boxHFrmSpd.pack_start(boxVSpeed, True, True, 10)
-
-        ###########################################################
-        align = Gtk.Alignment()
-        pbar = Gtk.ProgressBar()
-        align.add(pbar)
-
-        boxHBar = Gtk.HBox()
-        boxVBar = Gtk.VBox()
-
-        boxH1Bar = Gtk.HBox()
-        boxH2Bar = Gtk.HBox()
-        boxHBar.pack_start(boxH1Bar, False, False, 10)
-        boxHBar.pack_start(align, True, True, 0)
-        boxHBar.pack_start(boxH2Bar, False, False, 10)
-        
-        memoryLabel = Gtk.Label("Recording memory used: 0%")
-        boxVBar.pack_start(memoryLabel, False, False, 10)
-        boxVBar.pack_start(boxHBar, False, False, 40)
-        ###########################################################
-      
-        scrolled1 = Gtk.ScrolledWindow()
-        scrolled1.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        box7 = Gtk.HBox()
-        #boxH.pack_start(box7, False, False, 10)
-        boxH.pack_start(frmSpeed, False, False, 10)
-        #boxH.set_size_request(width/2, height/3)
-        
-
-        boxVa = Gtk.VBox()
-        boxVb = Gtk.VBox()
-
-        """
-        boxH1 = Gtk.HBox()
-        boxH2 = Gtk.HBox()
-        boxH.pack_start(boxH1, False, False, 10)
-        boxH.pack_start(frameDraw, True, True, 0)
-        boxH.pack_start(boxH2, False, False, 10)
-        boxV1.pack_start(boxH, True, True, 50)
-        boxVdraw.pack_start(boxV1, True, True, 0)
-        boxVdraw.pack_start(boxV2, False, False, 0)
-        boxHall.pack_start(boxVdraw, True, True, 10)
-        """
-
-        boxVa.pack_start(boxH, False, False, 40)
-        boxHall.pack_start(boxVa, False, False, 10)
-
-        wdth = width/4
-        hght = height/4
-
-        frame1 = Gtk.Frame()
-        frame1.set_label("Base")
-        #label1 = Gtk.Label("Base")
-        boxV1 = Gtk.VBox()
-        boxH1 = Gtk.HBox()
-        btn1Up.set_size_request(wdth/2.5, hght/2.5)
-        btn1Down.set_size_request(wdth/2.5, hght/2.5)
-        btn1Up.connect('button-press-event', self.on_btn1Up_press)
-        btn1Up.connect('button-release-event', self.on_btn1Up_release)
-        btn1Down.connect('button-press-event', self.on_btn1Down_press)
-        btn1Down.connect('button-release-event', self.on_btn1Up_release)
-        #boxV1.pack_start(label1, False, False, 10)
-        boxV1.pack_start(btn1Up, False, False, 10)
-        boxV1.pack_start(serv1Lbl, False, False, 10)
-        boxV1.pack_start(btn1Down, False, False, 10)
-        boxH1.pack_start(boxV1, False, False, 10)
-        frame1.add(boxH1)
-        servboxV1.pack_start(frame1, False, False, 10)
-        servboxH.pack_start(servboxV1, False, False, 10)
-        
-        frame2 = Gtk.Frame()
-        frame2.set_label("Forearm")
-        #label2 = Gtk.Label("Forearm")
-        boxV2 = Gtk.VBox()
-        boxH2 = Gtk.HBox()
-        btn2Up.set_size_request(wdth/2.5, hght/2.5)
-        btn2Down.set_size_request(wdth/2.5, hght/2.5)
-        btn2Up.connect('button-press-event', self.on_btn2Up_press)
-        btn2Up.connect('button-release-event', self.on_btn2Up_release)
-        btn2Down.connect('button-press-event', self.on_btn2Down_press)
-        btn2Down.connect('button-release-event', self.on_btn2Up_release)
-        #boxV2.pack_start(label2, False, False, 10)
-        boxV2.pack_start(btn2Up, False, False, 10)
-        boxV2.pack_start(serv2Lbl, False, False, 10)
-        boxV2.pack_start(btn2Down, False, False, 10)
-        boxH2.pack_start(boxV2, False, False, 10)
-        frame2.add(boxH2)
-        servboxV2.pack_start(frame2, False, False, 10)
-        servboxH.pack_start(servboxV2, False, False, 10)
-        
-        frame3 = Gtk.Frame()
-        frame3.set_label("Hand")
-        #label3 = Gtk.Label("Hand")
-        boxV3 = Gtk.VBox()
-        boxH3 = Gtk.HBox()
-        btn3Up.set_size_request(wdth/2.5, hght/2.5)
-        btn3Down.set_size_request(wdth/2.5, hght/2.5)
-        btn3Up.connect('button-press-event', self.on_btn3Up_press)
-        btn3Up.connect('button-release-event', self.on_btn3Up_release)
-        btn3Down.connect('button-press-event', self.on_btn3Down_press)
-        btn3Down.connect('button-release-event', self.on_btn3Up_release)
-        #boxV3.pack_start(label3, False, False, 10)
-        boxV3.pack_start(btn3Up, False, False, 10)
-        boxV3.pack_start(serv3Lbl, False, False, 10)
-        boxV3.pack_start(btn3Down, False, False, 10)
-        boxH3.pack_start(boxV3, False, False, 10)
-        frame3.add(boxH3)
-        servboxV3.pack_start(frame3, False, False, 10)
-        servboxH.pack_start(servboxV3, False, False, 10)
-        
-        frame4 = Gtk.Frame()
-        frame4.set_label("Gripper")
-        #label4 = Gtk.Label("Gripper")
-        boxV4 = Gtk.VBox()
-        boxH4 = Gtk.HBox()
-        btn4Up.set_size_request(wdth/2.5, hght/2.5)
-        btn4Down.set_size_request(wdth/2.5, hght/2.5)
-        btn4Up.connect('button-press-event', self.on_btn4Up_press)
-        btn4Up.connect('button-release-event', self.on_btn4Up_release)
-        btn4Down.connect('button-press-event', self.on_btn4Down_press)
-        btn4Down.connect('button-release-event', self.on_btn4Up_release)
-        #boxV4.pack_start(label4, False, False, 10)
-        boxV4.pack_start(btn4Up, False, False, 10)
-        boxV4.pack_start(serv4Lbl, False, False, 10)
-        boxV4.pack_start(btn4Down, False, False, 10)
-        boxH4.pack_start(boxV4, False, False, 10)
-        frame4.add(boxH4)
-        servboxV4.pack_start(frame4, False, False, 10)
-        servboxH.pack_start(servboxV4, False, False, 10)
-
-        buttonRecord = Gtk.Button(name="button", label="Record")
-        buttonRecord.connect("clicked", self.on_rec_clicked)
-        buttonPLay = Gtk.Button(name="button", label="Play")
-        buttonPLay.connect("clicked", self.on_play_clicked)
-        buttonPause = Gtk.Button(name="button", label="Pause")
-        buttonPause.connect("clicked", self.on_pause_clicked)
-        buttonStop = Gtk.Button(name="button", label="Stop")
-        buttonStop.connect("clicked", self.on_stop_clicked)
-        buttonRepeat = Gtk.CheckButton("Repeat one time")
-        buttonRepeat.connect("toggled", self.on_repeat_clicked)
-        buttonClear = Gtk.Button(name="button", label="Clear")
-        buttonClear.connect("clicked", self.on_clear_clicked)
-
-        box5 = Gtk.VBox() 
-
-        box5.pack_start(buttonRecord, False, False, 0)
-        box5.pack_start(buttonPLay, False, False, 20)
-        box5.pack_start(buttonPause, False, False, 20)
-        box5.pack_start(buttonStop, False, False, 0)
-        box5.pack_start(buttonRepeat, False, False, 20)
-        box5.pack_start(buttonClear, False, False, 0)
-        #boxH.pack_start(box5, True, True, 0)
-
-        #box6 = Gtk.HBox()
-        #boxH.pack_start(box6, False, False, 10)
-
-        servboxV.pack_start(servboxH, False, False, 0)
-        servboxV.pack_start(boxHFrmSpd, False, False, 0)
-        servboxV.pack_start(box5, False, False, 0)
-        servboxV.pack_start(boxVBar, False, False, 0)
-        frmSpeed.add(servboxV)
-
-        ###########################################################
-
-        boxVdraw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-
-        global drawingarea
-        drawingarea = Gtk.DrawingArea()
-        drawingarea.connect('draw', self.draw)
-    
-        drawing_event_box = Gtk.EventBox()
-        drawing_event_box.add(drawingarea)
-        drawing_event_box.connect('button-press-event', self.mouse_pressed)
-        drawing_event_box.connect('motion-notify-event', self.mouse_dragged)
-    
-        boxVDraw = Gtk.VBox()
-        boxVDraw.pack_start(drawing_event_box, True, True, 0)
-
-        frameDraw = Gtk.Frame()
-        frameDraw.add(boxVDraw)
-
-        boxH = Gtk.HBox()
-        boxV1 = Gtk.VBox()
-
-        boxH1 = Gtk.HBox()
-        boxH2 = Gtk.HBox()
-        boxH.pack_start(boxH1, False, False, 10)
-        boxH.pack_start(frameDraw, True, True, 0)
-        boxH.pack_start(boxH2, False, False, 10)
-
-        boxV1.pack_start(boxH, True, True, 40)
-
-        boxVdraw.pack_start(boxV1, True, True, 0)
-
-        boxHall.pack_start(boxVdraw, True, True, 10)
-
-        ###################################################
-        
-        self.add(boxHall)
-        global initApp
-        initApp = True
-
-#=======================================
-# For cairo
-#=======================================
-    # ---------------------------------
-    # draw
-    # ---------------------------------
-    def draw(self, da, ctx):
-        ctx.set_source_rgb(0, 0, 0)
-        ctx.set_line_width(SIZE/20)
-        ctx.set_line_join(cairo.LINE_JOIN_ROUND)
-    
-        draw_pedro_side(ctx)
-        self.draw_text(ctx)
-
-
-    # ---------------------------------
-    # draw_text
-    # ---------------------------------
-    def draw_text(self, ctx):
-        ctx.select_font_face("Purisa", cairo.FONT_SLANT_NORMAL,
-                cairo.FONT_WEIGHT_NORMAL)
-        ctx.set_font_size(TXT_SIZE)
-        ctx.move_to(0.01*SIZE, 1.5*TXT_SIZE)
-        ctx.show_text(' Forearm: ' + str(int(degrees(forearm))))
-        ctx.move_to(0.01*SIZE, 3.5*TXT_SIZE)
-        ctx.show_text(' Hand: '+ str(int(degrees(-hand))))
-        if outOfReach:
-            ctx.set_source_rgb(1, 0, 0)
-            ctx.move_to(0.01*SIZE, 4*TXT_SIZE)
-            #ctx.show_text('OUT OF REACH !!!')
-
-    # ---------------------------------
-    # mouse_pressed
-    # ---------------------------------
-    def mouse_pressed(self, widget, e):
-        global isForearm
-        isForearm = (e.button == 1)
-
-    # ---------------------------------
-    # mouse_dragged
-    # ---------------------------------
-    def mouse_dragged(self, widget, e):
-        global mXL, mYL
-        global mXR, mYR
-        global mXik, mYik
-        global originHandX, originHandY
-        global outOfReach
-    
-        if e.x > -1.5*SIZE + Width/2 and e.x < Width - 1.5*SIZE:
-            mXik = e.x
-            mYik = e.y
-            self.xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, Z)
-        else:
-            if e.x > Width - 1.5*SIZE :
-                if e.x < Width - 0.5*SIZE and e.x > Width - SIZE and e.y > 0.5*SIZE and e.y < d + 0.5*SIZE:
-                    self.xyzToServoAngles(0, mXik - OriginTopX, mYik - OriginTopY, d + 0.5*SIZE - e.y)
-                else:
-                    outOfReach = True
-            elif isForearm:
-                mXL = e.x
-                mYL = e.y
-                self.xyzToServoAngles(1, mXL - originForearmX, mYL - originForearmY, Z)
-        
-            else :
-                mXR = e.x
-                mYR = e.y
-                self.xyzToServoAngles(2, mXR - originHandX, mYR - originHandY, Z)
-
-        originHandX = originForearmX + (length_Forearm)*cos(forearm - pi)
-        originHandY = originForearmY + (length_Forearm)*sin(forearm - pi)
-        drawingarea.queue_draw()
-
-    # Inverse Kinematics:
-    # From Cartesian to Servo Angles
-    # ---------------------------------
-    # xyzToServoAngles
-    # ---------------------------------
-    def xyzToServoAngles(self, choice,x, y, z):
-        global base, forearm, hand, r, Z
-        global outOfReach
-        outOfReach = False
-        base0 = base
-        forearm0 = forearm
-        hand0 = hand
-    
-        if choice == 0:
-            a = length_Forearm
-            b = length_Hand + length_EndPoint
-            r = sqrt(x*x + y*y)
-        
-            if r >= d:
-                r = d
-        
-            if z <= 0:
-                Z = 0
-            elif z >= d + 0.5*SIZE:
-                Z = d + 0.5*SIZE
-            else:
-                Z = z
-        
-            R = sqrt(r*r + Z*Z)
-        
-            if R > (b-a) and R <= (a+b):
-                base0 = atan2(y,x) + pi
-                self.send_angles(1, int(degrees(base0)))
-
-            else:
-                outOfReach = True
-    
-        elif choice == 1:
-            forearm0 = atan2(y, x) + pi
-            self.send_angles(2, int(degrees(forearm0)))
-
-
-        elif choice == 2:
-            hand0 = atan2(y, x) + pi/4 - forearm0
-            self.send_angles(4, -int(degrees(hand0)))
-
-    
-        # Set limits
-        if base0 > pi and base0 < pi*3/2:
-            base0 = pi
-            outOfReach = True
-        elif base0 > pi and base0 > pi*3/2:
-            base0 = 0
-            outOfReach = True
-    
-        if forearm0 >= pi and forearm0 < pi*3/2:
-            forearm0 = pi
-            outOfReach = True
-        elif forearm0 <= 0 or forearm0 >= pi*3/2:
-            forearm0 = 0
-            outOfReach = True
-    
-        if forearm0 > pi/4:
-            if hand0 < -pi or hand0 > pi/2:
-                hand0 = -pi
-                outOfReach = True
-            elif hand0 > 0 and hand0 < pi/2:
-                hand0 = 0
-                outOfReach = True
-        else:
-            hand0 -= pi/4
-            if hand0 > -pi/4 and hand0 < pi/2:
-                hand0 = -pi/4
-                outOfReach = True
-            elif hand0 > 0 and hand0 > pi/2:
-                hand0 = -pi - forearm0
-                outOfReach = True
-            hand0 += pi/4
-    
-        if not outOfReach:
-            base = base0
-            forearm = forearm0
-            hand = hand0
-
-
-
-
-    # ---------------------------------
-    # send_cmd
-    # ---------------------------------
-    def send_angles(self, numServ, angleServ):
-        try:
-            print("angleServ1: " + str(int(degrees(base))) + " angleServ2: " + str(int(degrees(forearm))) + " angleServ3: " + str(-int(degrees(hand))))
-            ser.write(bytearray([numServ, angleServ]))
-        except:
-            print ("No Pedro Connected")
-
-#=======================================
-
-    # ---------------------------------
-    # btnSpeed
-    # ---------------------------------
-    def btnSpeed(self, widget, data=None):
-       print ("%s was toggled %s" % (data, ("OFF", "ON")[widget.get_active()]))
-
-    # ---------------------------------
-    # update_speed
-    # ---------------------------------
-    def update_speed(self, event):
-        print("speed value: " + str(int(self.speed_scale.get_value())))
-
-
-    # ---------------------------------
-    # on_repeat_clicked
-    # ---------------------------------
-    def on_repeat_clicked(self, button):
-        print("repeat button was toggled " + str(button.get_active()))
-
-    # ---------------------------------
-    # on_rec_clicked
-    # ---------------------------------
-    def on_rec_clicked(self, button):
-        print("rec button was clicked")
-        try:
-            ser.write(bytearray([99, 44]))
-        except:
-            print ("Record unavailable. No Pedro Connected")
-
-    # ---------------------------------
-    # on_play_clicked
-    # ---------------------------------
-    def on_play_clicked(self, button):
-        print("play button was clicked")
-        try:
-            ser.write(bytearray([99, 55]))
-        except:
-            print ("Play unavailable. No Pedro Connected")
-
-    # ---------------------------------
-    # on_pause_clicked
-    # ---------------------------------
-    def on_pause_clicked(self, button):
-        print("pause button was clicked")
-        try:
-            ser.write(bytearray([99, 66]))
-        except:
-            print ("Pause unavailable. No Pedro Connected")
-
-    # ---------------------------------
-    # on_stop_clicked
-    # ---------------------------------
-    def on_stop_clicked(self, button):
-        print("stop button was clicked")
-        try:
-            ser.write(bytearray([99, 77]))
-        except:
-            print ("Play unavailable. No Pedro Connected")
-
-
-    # ---------------------------------
-    # on_clear_clicked
-    # ---------------------------------
-    def on_clear_clicked(self, button):
-        print("clear button was clicked")
-        try:
-            ser.write(bytearray([99, 88]))
-        except:
-            print ("Clear unavailable. No Pedro Connected")
-
-    # ---------------------------------
-    # on_about_clicked
-    # ---------------------------------
-    def on_about_clicked(self, button):
-        win = About()
-        win.connect("delete-event", Gtk.main_quit)
-        win.show_all()
-        Gtk.main()
-
-    # ---------------------------------
-    # on_close_clicked
-    # ---------------------------------
-    def on_close_clicked(self, button):
-       
-        global close_app
-        close_app = True
-        print("Closing application")
-        #Gtk.main_quit()
-        #window.destroy()
-        print("Closing application****")
-        self.destroy()
-
-    # ---------------------------------
-    # ressource_path
-    # ---------------------------------
-    def ressource_path(self,relative_path):
-        try:
-            base_path = sys._MEIPASS
-        except Exception:
-            base_path = os.path.abspath(".")
-
-        return os.path.join(base_path, relative_path) 
-
-    # ---------------------------------
-    # on_serial_updated
-    # ---------------------------------
-    def on_serial_updated(self, btn):
-        global updateSerial, ser
-        pedro_combo.get_model().clear()
-        ser.close()
-        updateSerial = True
-        update_ser.serial_ports()
-    
-    # ---------------------------------
-    # on_pedro_combo_changed
-    # ---------------------------------
-    def on_pedro_combo_changed(self, combo):
-        pedro_select = combo.get_active_iter()
-        global ser, checkPedro
-        if pedro_select != None: #a voir plus necessaire si fenetre bloquante "no pedro"
-            model = combo.get_model()
-            select = model[pedro_select][0]
-            # ser.close()
-            ser = serial.Serial(str(pedro_list[select]),\
-                                baudrate=9600,\
-                                timeout=1)
-            ser.write(bytearray([9, 1, 1, 0, 3, 1]))
-            print ("Selected: Pedro: " + str(pedro_list[select]))
-
-    # ---------------------------------
-    # on_area_button_press
-    # ---------------------------------
-    def on_area_button_press(self, widget, event):
-        global mouseClick
-        if event.button == 1:
-            print ("left click")
-            mouseClick = "left"
-        elif event.button == 2:
-            print ("middle click")
-        elif event.button == 3:
-            print ("right click")
-            mouseClick = "right"
-        self.mouseClick = True
-
-    # ---------------------------------
-    # on_area_button_release
-    # ---------------------------------
-    def on_area_button_release(self, widget, event):
-        global old_mouse1, old_mouse2, old_mouse3, old_mouse4
-        global servo_change
-        global serv1_chg, serv2_chg, serv3_chg, serv4_chg
-        print ('NO')
-        if mouseClick == "left":
-           old_mouse1 = int(event.x)
-           old_mouse2 = int(event.y)
-           serv1_chg = False
-           serv2_chg = False
-        elif mouseClick == "right":
-           old_mouse3 = int(event.x)
-           old_mouse4 = int(event.y)
-        self.mouseClick = False
-        servo_change = False
-        serv1_chg = False
-
-    # ---------------------------------
-    # on_area_motion
-    # ---------------------------------
-    def on_area_motion(self, widget, event):
-        global old_mouse1, old_mouse2, old_mouse3, old_mouse4
-        global lockServo1, lockServo2, lockServo3, lockServo4
-        global servo_change
-        global serv1_chg, serv2_chg, serv3_chg, serv4_chg
-        global servocmd
-        if self.mouseClick:
-            servo_change = True
-            if mouseClick == "left":
-                if old_mouse1 == None:
-                    old_mouse1 = int(event.x)
-                if old_mouse2 == None:
-                    old_mouse2 = int(event.y)
-                if not lockServo1:
-                    serv1_chg = True
-                    if old_mouse1 > int(event.x) :
-                        servocmd = 22
-                        serv1Lbl.set_label(str(int(serv1Lbl.get_label()) - 1))
-                    elif old_mouse1 < int(event.x):
-                        servocmd = 11
-                        serv1Lbl.set_label(str(int(serv1Lbl.get_label()) + 1))
-                    old_mouse1 = int(event.x)
-                if not lockServo2:
-                    serv2_chg = True
-                    if old_mouse2 > int(event.y) :
-                        servocmd = 22
-                        serv2Lbl.set_label(str(int(serv2Lbl.get_label()) - 1))
-                    elif old_mouse2 < int(event.y):
-                        servocmd = 11
-                        serv2Lbl.set_label(str(int(serv2Lbl.get_label()) + 1))
-                    old_mouse2 = int(event.y)
-            elif mouseClick == "right":
-                if old_mouse3 == None:
-                    old_mouse3 = int(event.x)
-                if old_mouse4 == None:
-                    old_mouse4 = int(event.y)
-                if not lockServo3:
-                    if old_mouse3 > int(event.x) :
-                        serv3Lbl.set_label(str(int(serv3Lbl.get_label()) - 1))
-                    elif old_mouse3 < int(event.x):
-                        serv3Lbl.set_label(str(int(serv3Lbl.get_label()) + 1))
-                    old_mouse3 = int(event.x)
-                if not lockServo4:
-                    if old_mouse4 > int(event.y) :
-                        serv4Lbl.set_label(str(int(serv4Lbl.get_label()) - 1))
-                    elif old_mouse4 < int(event.y):
-                        serv4Lbl.set_label(str(int(serv4Lbl.get_label()) + 1))
-                    old_mouse4 = int(event.y)
-          
-    # ---------------------------------
-    # on_btn1Up_press
-    # ---------------------------------    
-    def on_btn1Up_press(self, widget, event):
-        #global servo_change
-        global serv1_chg
-        global servocmd
-        servocmd = 11
-        #servo_change = True
-        serv1_chg = True
-        if not thread_send_cmd.is_alive():
-            thread_send_cmd.start()
-            thread_send_cmd.pause.set()
-        else:
-            thread_send_cmd.pause.set()
-
-    # ---------------------------------
-    # on_btn1Up_release
-    # ---------------------------------  
-    def on_btn1Up_release(self, widget, event):
-        #global servo_change
-        global serv1_chg
-        #servo_change = False
-        serv1_chg = False
-        if thread_send_cmd.pause.is_set():
-            thread_send_cmd.pause.clear()
-
-    # ---------------------------------
-    # on_btn1Down_press
-    # ---------------------------------    
-    def on_btn1Down_press(self, widget, event):
-        #global servo_change
-        global serv1_chg
-        global servocmd
-        servocmd = 22
-        #servo_change = True
-        serv1_chg = True
-        if not thread_send_cmd.is_alive():
-            thread_send_cmd.start()
-            thread_send_cmd.pause.set()
-        else:
-            thread_send_cmd.pause.set()
-
-    # ---------------------------------
-    # on_btn1Down_release
-    # ---------------------------------  
-    def on_btn1Down_release(self, widget, event):
-        #global servo_change
-        global serv1_chg
-        #servo_change = False
-        serv1_chg = False
-        if thread_send_cmd.pause.is_set():
-            thread_send_cmd.pause.clear()
-
-#########
-
-    # ---------------------------------
-    # on_btn2Up_press
-    # ---------------------------------    
-    def on_btn2Up_press(self, widget, event):
-        #global servo_change
-        global serv2_chg
-        global servocmd
-        servocmd = 11
-        #servo_change = True
-        serv2_chg = True
-        if not thread_send_cmd.is_alive():
-            thread_send_cmd.start()
-            thread_send_cmd.pause.set()
-        else:
-            thread_send_cmd.pause.set()
-
-    # ---------------------------------
-    # on_btn2Up_release
-    # ---------------------------------  
-    def on_btn2Up_release(self, widget, event):
-        #global servo_change
-        global serv2_chg
-        #servo_change = False
-        serv2_chg = False
-        if thread_send_cmd.pause.is_set():
-            thread_send_cmd.pause.clear()
-
-    # ---------------------------------
-    # on_btn2Down_press
-    # ---------------------------------    
-    def on_btn2Down_press(self, widget, event):
-        #global servo_change
-        global serv2_chg
-        global servocmd
-        servocmd = 22
-        #servo_change = True
-        serv2_chg = True
-        if not thread_send_cmd.is_alive():
-            thread_send_cmd.start()
-            thread_send_cmd.pause.set()
-        else:
-            thread_send_cmd.pause.set()
-
-    # ---------------------------------
-    # on_btn2Down_release
-    # ---------------------------------  
-    def on_btn2Down_release(self, widget, event):
-        #global servo_change
-        global serv2_chg
-        #servo_change = False
-        serv2_chg = False
-        if thread_send_cmd.pause.is_set():
-            thread_send_cmd.pause.clear()
-
-#########
-
-    # ---------------------------------
-    # on_btn3Up_press
-    # ---------------------------------    
-    def on_btn3Up_press(self, widget, event):
-        #global servo_change
-        global serv3_chg
-        global servocmd
-        servocmd = 11
-        #servo_change = True
-        serv3_chg = True
-        if not thread_send_cmd.is_alive():
-            thread_send_cmd.start()
-            thread_send_cmd.pause.set()
-        else:
-            thread_send_cmd.pause.set()
-
-    # ---------------------------------
-    # on_btn3Up_release
-    # ---------------------------------  
-    def on_btn3Up_release(self, widget, event):
-        #global servo_change
-        global serv3_chg
-        #servo_change = False
-        serv3_chg = False
-        if thread_send_cmd.pause.is_set():
-            thread_send_cmd.pause.clear()
-
-    # ---------------------------------
-    # on_btn3Down_press
-    # ---------------------------------    
-    def on_btn3Down_press(self, widget, event):
-        #global servo_change
-        global serv3_chg
-        global servocmd
-        servocmd = 22
-        #servo_change = True
-        serv3_chg = True
-        if not thread_send_cmd.is_alive():
-            thread_send_cmd.start()
-            thread_send_cmd.pause.set()
-        else:
-            thread_send_cmd.pause.set()
-
-    # ---------------------------------
-    # on_btn3Down_release
-    # ---------------------------------  
-    def on_btn3Down_release(self, widget, event):
-        #global servo_change
-        global serv3_chg
-        #servo_change = False
-        serv3_chg = False
-        if thread_send_cmd.pause.is_set():
-            thread_send_cmd.pause.clear()
-
-########
-
-    # ---------------------------------
-    # on_btn4Up_press
-    # ---------------------------------    
-    def on_btn4Up_press(self, widget, event):
-        #global servo_change
-        global serv4_chg
-        global servocmd
-        servocmd = 11
-        #servo_change = True
-        serv4_chg = True
-        if not thread_send_cmd.is_alive():
-            thread_send_cmd.start()
-            thread_send_cmd.pause.set()
-        else:
-            thread_send_cmd.pause.set()
-
-    # ---------------------------------
-    # on_btn4Up_release
-    # ---------------------------------  
-    def on_btn4Up_release(self, widget, event):
-        #global servo_change
-        global serv4_chg
-        #servo_change = False
-        serv4_chg = False
-        if thread_send_cmd.pause.is_set():
-            thread_send_cmd.pause.clear()
-
-    # ---------------------------------
-    # on_btn4Down_press
-    # ---------------------------------    
-    def on_btn4Down_press(self, widget, event):
-        #global servo_change
-        global serv4_chg
-        global servocmd
-        servocmd = 22
-        #servo_change = True
-        serv4_chg = True
-        if not thread_send_cmd.is_alive():
-            thread_send_cmd.start()
-            thread_send_cmd.pause.set()
-        else:
-            thread_send_cmd.pause.set()
-
-    # ---------------------------------
-    # on_btn4Down_release
-    # ---------------------------------  
-    def on_btn4Down_release(self, widget, event):
-        #global servo_change
-        global serv4_chg
-        #servo_change = False
-        serv4_chg = False
-        if thread_send_cmd.pause.is_set():
-            thread_send_cmd.pause.clear()
-
-    # ---------------------------------
-    # color_swatch_new
-    # --------------------------------- 
-    def color_swatch_new(self, str_color):
-        color = Gdk.color_parse(str_color)
-
-        rgba = Gdk.RGBA.from_color(color)
-        button = Gtk.Button()
-
-        area = Gtk.DrawingArea()
-        area.set_size_request(24, 24)
-        area.override_background_color(0, rgba)
-
-        button.add(area)
-
-        return button
-
-    # ---------------------------------
-    # create_flowbox
-    # --------------------------------- 
-    def create_flowbox(self, flowbox):
-        colors = [
-        'AliceBlue',
-        'AntiqueWhite',
-        'AntiqueWhite1',
-        'AntiqueWhite2',
-        'AntiqueWhite3',
-        'AntiqueWhite4',
-        'aqua',
-        'aquamarine',
-        'aquamarine1',
-        'aquamarine2',
-        'aquamarine3',
-        'aquamarine4',
-        'azure',
-        'azure1',
-        'azure2',
-        'azure3',
-        'azure4',
-        'beige',
-        'bisque',
-        'bisque1',
-        'bisque2',
-        'bisque3',
-        'bisque4',
-        'black',
-        'BlanchedAlmond',
-        'blue',
-        'blue1',
-        'blue2',
-        'blue3',
-        'blue4',
-        'BlueViolet',
-        'brown',
-        'brown1',
-        'brown2',
-        'brown3',
-        'brown4',
-        'burlywood',
-        'burlywood1',
-        'burlywood2',
-        'burlywood3',
-        'burlywood4',
-        'CadetBlue',
-        'CadetBlue1',
-        'CadetBlue2',
-        'CadetBlue3',
-        'CadetBlue4',
-        'chartreuse',
-        'chartreuse1',
-        'chartreuse2',
-        'chartreuse3',
-        'chartreuse4',
-        'chocolate',
-        'chocolate1',
-        'chocolate2',
-        'chocolate3',
-        'chocolate4',
-        'coral',
-        'coral1',
-        'coral2',
-        'coral3',
-        'coral4'
-        ]
-
-        for i in range(0,255):
-            LabelMem = Gtk.Label ("   255   ")
-            FrameMem = Gtk.Frame() 
-            color_widget(FrameMem, 'coral')
-            FrameMem.add (LabelMem)
-            flowbox.add(FrameMem)
-            
-
-def recv_thr():
-    global ser
-    while ser is not None:
-        try:
-            if not ser.readable() or not ser.inWaiting() > 0:
-                continue
-            THR_LOCK.acquire()
-            ser_msg = ser.readline()
-            if ser_msg.decode('utf-8') == "Hi! Im Pedro":
-                print(ser_msg.decode('utf-8'))
-            THR_LOCK.release()
-        except:
-            pass
-# print("Pedro deconnected")
-# ---------------------------------
-# color_widget
-# ---------------------------------
-def color_widget(widget, color):
-    color = Gdk.color_parse(color)
-    rgba = Gdk.RGBA.from_color(color)
-    widget.override_background_color(0, rgba)
-
-# ---------------------------------
-# draw_pedro_side
-# ---------------------------------
-def draw_pedro_side(ctx):
-   
-    ctx.save()
-
-    side_base(ctx)
-    side_forearm(ctx)
-    side_hand(ctx)
-    side_endpoint(ctx)
-    
-    ctx.restore()
-
-# ---------------------------------
-# side_base
-# ---------------------------------
-def side_base(ctx):
-    ctx.set_source_rgb(0, 0, 0)
-    
-    ctx.rectangle(
-        OriginSideX - 0.5*(length_Base + 0.5*SIZE_PEDRO),
-        OriginSideY + 0.5*length_Base,
-        length_Base + 0.5*SIZE_PEDRO, - length_Base)
-    ctx.fill()
-                  
-    ctx.set_source_rgb(1, 0, 0)
-    ctx.arc(OriginSideX, OriginSideY - 0.5*length_Base, 0.5*(length_Base + 0.5*SIZE_PEDRO), pi, 0)
-                  
-    ctx.fill()
-    ctx.set_source_rgb(0, 0, 0)
-
-# ---------------------------------
-# side_forearm
-# ---------------------------------
-def side_forearm(ctx):
-    ctx.translate(originForearmX, originForearmY)
-    
-    ctx.rotate(forearm)
-    ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE_PEDRO), 0, 2*pi)
-    ctx.fill()
-    
-    ctx.rectangle(0, -0.125*length_Forearm, -length_Forearm, 0.25*length_Forearm)
-    ctx.fill()
-    
-    ctx.set_source_rgb(1, 0, 0)
-    ctx.arc(0 , 0, 0.05*length_Forearm, 0, 2*pi)
-    ctx.fill()
-    
-    ctx.restore()
-    ctx.set_source_rgb(0, 0, 0)
-
-# ---------------------------------
-# side_hand
-# ---------------------------------
-def side_hand(ctx):
-    ctx.save()
-    ctx.translate(originHandX, originHandY)
-    
-    ctx.rotate(forearm)
-   
-    ctx.rotate(hand)
-    ctx.arc(0 , 0, 0.4*(length_Base + 0.5*SIZE_PEDRO), 0, 2*pi)
-    ctx.fill()
-   
-    ctx.save()
-    ctx.rotate(-pi/4)
-    ctx.rectangle(
-        0,
-        -0.0625*length_Hand,
-        0.6*length_Hand,
-        0.125*length_Hand)
-        
-    ctx.rectangle(
-        0.6*length_Hand,
-        -0.125*length_Hand,
-        0.4*length_Hand,
-        0.25*length_Hand)
-                  
-    ctx.fill()
-                  
-    ctx.set_source_rgb(1, 0, 0)
-    ctx.arc(0 , 0, 0.05*length_Forearm, 0, 2*pi)
-    ctx.fill()
-
-
-# ---------------------------------
-# side_endpoint
-# ---------------------------------
-def side_endpoint(ctx):
-    ctx.translate(length_Hand, 0)
-    ctx.set_source_rgb(1, 0, 0)
-   
-    ctx.new_path()
-    ctx.move_to(0, -0.5*0.25*length_Hand)
-    ctx.rel_line_to(length_EndPoint, 0.4*0.25*length_Hand)
-    ctx.rel_line_to(-length_EndPoint, 0)
-    ctx.close_path()
-    
-    ctx.move_to(0, 0.5*0.25*length_Hand)
-    ctx.rel_line_to(length_EndPoint, -0.4*0.25*length_Hand)
-    ctx.rel_line_to(-length_EndPoint, 0)
-    ctx.close_path()
-   
-    ctx.fill()
-    ctx.restore()
-    ctx.set_source_rgb(0, 0, 0)
-
-# ---------------------------------
-# gtk_style
-# ---------------------------------
-def gtk_style():
-        css = b"""
-
-#button {
-    color: #ffffff;
-    background: #e80606;
-}
-#servo {
-    color: #ffffff;
-    background: #d80606;
-}
-
-        """
-        style_provider = Gtk.CssProvider()
-        style_provider.load_from_data(css)
-
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(),
-            style_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
-
-gtk_style()
-
-update_ser = Update_Serial()
-update_ser.serial_ports()
-
-recv=threading.Thread(target=recv_thr)
-recv.start()
-
-thread_send_cmd = Send_Cmd()
-window = Pedro()
-window.connect("delete-event", Gtk.main_quit)
-window.show_all()
-
-
-Gtk.main()
-
-
-
-
-#*******************************************************
-
-#============================================================================================================
-#                              PEDRO : Programming Educational Robot
-#============================================================================================================
-#!/usr/bin/env python
-#title           :pedro.py
-#description     :Interface for Pedro Petit Robot an open source 3D robotic arm, with serial USB control
-#email           :pedropetitrobot@gmail.com
-#date            :2016-2017
-#version         :1.0
-#usage           :python3 pedro.py
-#python_version  :3.6.1  
-#============================================================================================================
-
-import sys, os
-import glob
-import serial
-import gi
-import glib
-import time
-import cairo
-from math import pi, atan2, sin, cos, degrees, acos, asin, sqrt
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
-import threading
-#from threading import Thread
-GObject.threads_init()
-
-screen = Gdk.Screen.get_default()
-#print (screen.get_width(), screen.get_height())
-
-global pedro_combo
-pedro_combo = Gtk.ComboBoxText()
-
-global pedro_list
-pedro_list = {}
-
-global mouseClick
-mouseClick = ""
-
-global ser
-ser = None
-
-global lockServo1, lockServo2, lockServo3, lockServo4
-lockServo1 = False
-lockServo2 = False
-lockServo3 = False
-lockServo4 = False
-
-global servocmd
-servocmd = 0
-
-btn1Up = Gtk.Button(name="servo", label="Up")
-btn1Down = Gtk.Button(name="servo", label="Down")
-btn2Up = Gtk.Button(name="servo", label="Up")
-btn2Down = Gtk.Button(name="servo", label="Down")
-btn3Up = Gtk.Button(name="servo", label="Up")
-btn3Down = Gtk.Button(name="servo", label="Down")
-btn4Up = Gtk.Button(name="servo", label="Up")
-btn4Down = Gtk.Button(name="servo", label="Down")
-
-global serv1_chg, serv2_chg, serv3_chg, serv4_chg
-serv1_chg = False
-serv2_chg = False
-serv3_chg = False
-serv4_chg = False
-
-global servo_change
-servo_change = False
-
-global old_mouse1, old_mouse2, old_mouse3, old_mouse4
-old_mouse1 = None
-old_mouse2 = None
-old_mouse3 = None
-old_mouse4 = None
-
-global indexFlowbox
-indexFlowbox = 0
-
-global flowbox, flowbox2, flowbox3, flowbox4
-flowbox1 = Gtk.FlowBox()
-flowbox2 = Gtk.FlowBox()
-flowbox3 = Gtk.FlowBox()
-flowbox4 = Gtk.FlowBox()
-
-serv1Lbl = Gtk.Label("50")
-serv2Lbl = Gtk.Label("50")
-serv3Lbl = Gtk.Label("50")
-serv4Lbl = Gtk.Label("50")
-
-global updateSerial
-updateSerial = True
-
-global checkPedro
-checkPedro = True
-
-global initApp
-initApp = False
-
-THR_LOCK = threading.Lock()
-
-#=======================================
-# For cairo
-#=======================================
-global drawingarea
-
-SIZE = 50
-SIZE_PEDRO = screen.get_width()/15
-TXT_SIZE = SIZE/4
-length_Forearm = 2*SIZE_PEDRO
-length_Hand = 0.93*length_Forearm
-length_EndPoint = 0.28*length_Forearm
-length_Base = 0.5*length_Forearm
-
-Z = 0
-Z0 = Z
-d = length_Forearm + length_Hand + length_EndPoint
-c = length_Forearm - length_Hand - length_EndPoint
-r = length_Forearm
-r0 = r
-
-mXL = 0
-mYL = 0
-mXR = 0
-mYR = 0
-mXik = 0.5*SIZE
-mYik = 0
-
-OriginSideX = d
-OriginSideY = d + SIZE
-OriginTopX = 2*d + OriginSideX + SIZE
-OriginTopY = d + SIZE
-
-Width = 4*d + 4*SIZE
-Height = OriginTopY + SIZE
-
-originForearmX = OriginSideX
-originForearmY = OriginSideY - 0.5*length_Base
-originHandX = originForearmX - length_Forearm
-originHandY = originForearmY
-
-base = 0
-forearm = 0
-hand = 0
-
-isForearm = True
-outOfReach = False
-lockHandAndForearm = False
-#=======================================
-
-
-
-
-
-
+            if recButton:
+                recFile = open("record_pedro.log", 'a' )
+                recFile.write("d" + str(serv4Lbl.get_label()) + " ")
+                recFile.close()
 
 #=======================================
 # Pedro
@@ -1798,11 +284,11 @@ class Pedro(Gtk.Window):
         ###########################################################
 
         hb = Gtk.HeaderBar()
-        hb.props.title = "PEDRO - Programming EDucational RObotic"
+        hb.props.title = "Pedro"
         self.set_titlebar(hb)
         color_widget(self, 'White')
         #self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.1)
-        #self.set_resizable(False)
+        self.set_resizable(False)
         self.mouseClick = False
         width, height = self.get_size()
         sepa = Gtk.VSeparator()
@@ -1833,8 +319,7 @@ class Pedro(Gtk.Window):
         hght = height/4
         boxHAllServo = Gtk.HBox()
 
-        frame1 = Gtk.Frame()
-        frame1.set_label("Base")
+        lblBase = Gtk.Label("BASE")
         boxV1 = Gtk.VBox()
         boxH1 = Gtk.HBox()
         btn1Up.set_size_request(wdth/2.5, hght/2.5)
@@ -1843,17 +328,16 @@ class Pedro(Gtk.Window):
         btn1Up.connect('button-release-event', self.on_btn1Up_release)
         btn1Down.connect('button-press-event', self.on_btn1Down_press)
         btn1Down.connect('button-release-event', self.on_btn1Up_release)
+        boxV1.pack_start(lblBase, False, False, 10)
         boxV1.pack_start(btn1Up, False, False, 10)
         boxV1.pack_start(serv1Lbl, False, False, 10)
         boxV1.pack_start(btn1Down, False, False, 10)
         boxH1.pack_start(boxV1, False, False, 10)
-        frame1.add(boxH1)
         boxVServoFrame1 = Gtk.VBox()
-        boxVServoFrame1.pack_start(frame1, False, False, 10)
-        boxHAllServo.pack_start(boxVServoFrame1, False, False, 10)
+        boxVServoFrame1.pack_start(boxH1, False, False, 10)
+        boxHAllServo.pack_start(boxVServoFrame1, True, True, 10)
         
-        frame2 = Gtk.Frame()
-        frame2.set_label("Forearm")
+        lblForearm = Gtk.Label("FOREARM")
         boxV2 = Gtk.VBox()
         boxH2 = Gtk.HBox()
         btn2Up.set_size_request(wdth/2.5, hght/2.5)
@@ -1862,17 +346,16 @@ class Pedro(Gtk.Window):
         btn2Up.connect('button-release-event', self.on_btn2Up_release)
         btn2Down.connect('button-press-event', self.on_btn2Down_press)
         btn2Down.connect('button-release-event', self.on_btn2Up_release)
+        boxV2.pack_start(lblForearm, False, False, 10)
         boxV2.pack_start(btn2Up, False, False, 10)
         boxV2.pack_start(serv2Lbl, False, False, 10)
         boxV2.pack_start(btn2Down, False, False, 10)
         boxH2.pack_start(boxV2, False, False, 10)
-        frame2.add(boxH2)
         boxVServoFrame2 = Gtk.VBox()
-        boxVServoFrame2.pack_start(frame2, False, False, 10)
-        boxHAllServo.pack_start(boxVServoFrame2, False, False, 10)
+        boxVServoFrame2.pack_start(boxH2, False, False, 10)
+        boxHAllServo.pack_start(boxVServoFrame2, True, True, 10)
         
-        frame3 = Gtk.Frame()
-        frame3.set_label("Hand")
+        lblHand = Gtk.Label("HAND")
         boxV3 = Gtk.VBox()
         boxH3 = Gtk.HBox()
         btn3Up.set_size_request(wdth/2.5, hght/2.5)
@@ -1881,17 +364,16 @@ class Pedro(Gtk.Window):
         btn3Up.connect('button-release-event', self.on_btn3Up_release)
         btn3Down.connect('button-press-event', self.on_btn3Down_press)
         btn3Down.connect('button-release-event', self.on_btn3Up_release)
+        boxV3.pack_start(lblHand, False, False, 10)
         boxV3.pack_start(btn3Up, False, False, 10)
         boxV3.pack_start(serv3Lbl, False, False, 10)
         boxV3.pack_start(btn3Down, False, False, 10)
         boxH3.pack_start(boxV3, False, False, 10)
-        frame3.add(boxH3)
         boxVServoFrame3 = Gtk.VBox()
-        boxVServoFrame3.pack_start(frame3, False, False, 10)
-        boxHAllServo.pack_start(boxVServoFrame3, False, False, 10)
+        boxVServoFrame3.pack_start(boxH3, False, False, 10)
+        boxHAllServo.pack_start(boxVServoFrame3, True, True, 10)
         
-        frame4 = Gtk.Frame()
-        frame4.set_label("Gripper")
+        lblGripper = Gtk.Label("GRIPPER")
         boxV4 = Gtk.VBox()
         boxH4 = Gtk.HBox()
         btn4Up.set_size_request(wdth/2.5, hght/2.5)
@@ -1900,14 +382,14 @@ class Pedro(Gtk.Window):
         btn4Up.connect('button-release-event', self.on_btn4Up_release)
         btn4Down.connect('button-press-event', self.on_btn4Down_press)
         btn4Down.connect('button-release-event', self.on_btn4Up_release)
+        boxV4.pack_start(lblGripper, False, False, 10)
         boxV4.pack_start(btn4Up, False, False, 10)
         boxV4.pack_start(serv4Lbl, False, False, 10)
         boxV4.pack_start(btn4Down, False, False, 10)
         boxH4.pack_start(boxV4, False, False, 10)
-        frame4.add(boxH4)
         boxVServoFrame4 = Gtk.VBox()
-        boxVServoFrame4.pack_start(frame4, False, False, 10)
-        boxHAllServo.pack_start(boxVServoFrame4, False, False, 10)
+        boxVServoFrame4.pack_start(boxH4, False, False, 10)
+        boxHAllServo.pack_start(boxVServoFrame4, True, True, 10)
 
               
         ###################
@@ -1958,6 +440,7 @@ class Pedro(Gtk.Window):
         buttonClear = Gtk.Button(name="button", label="Clear")
         buttonClear.connect("clicked", self.on_clear_clicked)
 
+        boxHAllButton = Gtk.HBox()
         boxVAllButton = Gtk.VBox() 
         boxVAllButton.pack_start(buttonRecord, False, False, 0)
         boxVAllButton.pack_start(buttonPLay, False, False, 20)
@@ -1965,26 +448,15 @@ class Pedro(Gtk.Window):
         boxVAllButton.pack_start(buttonStop, False, False, 0)
         boxVAllButton.pack_start(buttonRepeat, False, False, 20)
         boxVAllButton.pack_start(buttonClear, False, False, 0)
+        boxHAllButton.pack_start(boxVAllButton, True, True, 10)
 
-        #############
-        ###### Memory
-        #############
-        align = Gtk.Alignment()
-        pbar = Gtk.ProgressBar()
-        align.add(pbar)
 
-        boxHBar = Gtk.HBox()
         boxVBar = Gtk.VBox()
+    
+        barH = Gtk.HSeparator()
+        boxVBar.pack_start(barH, False, False, 0)
 
-        boxH1Bar = Gtk.HBox()
-        boxH2Bar = Gtk.HBox()
-        boxHBar.pack_start(boxH1Bar, False, False, 10)
-        boxHBar.pack_start(align, True, True, 0)
-        boxHBar.pack_start(boxH2Bar, False, False, 10)
-       
-        memoryLabel = Gtk.Label("Recording memory used: 0%")
-        boxVBar.pack_start(memoryLabel, False, False, 10)
-        boxVBar.pack_start(boxHBar, False, False, 40)
+        pedroLbl = Gtk.Label("PEDRO - Programming Educational Robotic")
 
         #################
         ###### Frame main
@@ -1993,57 +465,22 @@ class Pedro(Gtk.Window):
         boxVAll = Gtk.VBox()
         boxVAll.pack_start(boxHAllServo, False, False, 0)
         boxVAll.pack_start(boxHAllSpeed, False, False, 0)
-        boxVAll.pack_start(boxVAllButton, False, False, 0)
+        boxVAll.pack_start(boxHAllButton, False, False, 30)
         boxVAll.pack_start(boxVBar, False, False, 0)
+        boxVAll.pack_start(pedroLbl, False, False, 10)
+
+        """
         frameMAIN.add(boxVAll)
-      
         boxHframeMAIN = Gtk.HBox()
         boxHframeMAIN.pack_start(frameMAIN, False, False, 10)
         boxVframeMAIN = Gtk.VBox()
-        boxVframeMAIN.pack_start(boxHframeMAIN, False, False, 40)
-
-
-        ##################
-        ###### Pedro cairo
-        ##################
-        
-        """
-        boxVdraw = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-
-        global drawingarea
-        drawingarea = Gtk.DrawingArea()
-        drawingarea.connect('draw', self.draw)
-    
-        drawing_event_box = Gtk.EventBox()
-        drawing_event_box.add(drawingarea)
-        #drawing_event_box.connect('button-press-event', self.mouse_pressed)
-        #drawing_event_box.connect('motion-notify-event', self.mouse_dragged)
-    
-        boxVDraw = Gtk.VBox()
-        boxVDraw.pack_start(drawing_event_box, True, True, 0)
-
-        frameDraw = Gtk.Frame()
-        frameDraw.add(boxVDraw)
-
-        boxH = Gtk.HBox()
-        boxV1 = Gtk.VBox()
-
-        boxH1 = Gtk.HBox()
-        boxH2 = Gtk.HBox()
-        boxH.pack_start(boxH1, False, False, 10)
-        boxH.pack_start(frameDraw, True, True, 0)
-        boxH.pack_start(boxH2, False, False, 10)
-
-        boxV1.pack_start(boxH, True, True, 40)
-
-        boxVdraw.pack_start(boxV1, True, True, 0)
-
+        boxVframeMAIN.pack_start(boxHframeMAIN, False, False, 10)
         """
         ###########
         ###### Main
         ###########
         boxHMAIN = Gtk.HBox()
-        boxHMAIN.pack_start(boxVframeMAIN, False, False, 10)
+        boxHMAIN.pack_start(boxVAll, True, True, 10)
         #boxHMAIN.pack_start(boxVdraw, True, True, 10)
 
         ###################################################
@@ -2056,6 +493,9 @@ class Pedro(Gtk.Window):
     # on_close_clicked
     # ---------------------------------
     def on_close_clicked(self, button):
+        global close_app
+        close_app = True
+        #thread_send_cmd.join()
         self.destroy()
         Gtk.main_quit()
 
@@ -2076,7 +516,7 @@ class Pedro(Gtk.Window):
         pedro_combo.get_model().clear()
         ser.close()
         updateSerial = True
-        #update_ser.serial_ports()
+        update_ser.serial_ports()
 
     # ---------------------------------
     # on_pedro_combo_changed
@@ -2113,16 +553,17 @@ class Pedro(Gtk.Window):
         #global servo_change
         global serv1_chg
         global servocmd
+        global recFile
         servocmd = 11
         #servo_change = True
-        serv1_chg = True
-        """
+        serv1_chg = True     
+        
         if not thread_send_cmd.is_alive():
             thread_send_cmd.start()
             thread_send_cmd.pause.set()
         else:
             thread_send_cmd.pause.set()
-        """
+        
     # ---------------------------------
     # on_btn1Up_release
     # ---------------------------------  
@@ -2131,10 +572,10 @@ class Pedro(Gtk.Window):
         global serv1_chg
         #servo_change = False
         serv1_chg = False
-        """
+        
         if thread_send_cmd.pause.is_set():
             thread_send_cmd.pause.clear()
-        """
+        
     # ---------------------------------
     # on_btn1Down_press
     # ---------------------------------    
@@ -2142,16 +583,17 @@ class Pedro(Gtk.Window):
         #global servo_change
         global serv1_chg
         global servocmd
+        global recFile
         servocmd = 22
         #servo_change = True
-        serv1_chg = True
-        """
+        serv1_chg = True        
+
         if not thread_send_cmd.is_alive():
             thread_send_cmd.start()
             thread_send_cmd.pause.set()
         else:
             thread_send_cmd.pause.set()
-        """
+        
     # ---------------------------------
     # on_btn1Down_release
     # ---------------------------------  
@@ -2160,10 +602,9 @@ class Pedro(Gtk.Window):
         global serv1_chg
         #servo_change = False
         serv1_chg = False
-        """
+        
         if thread_send_cmd.pause.is_set():
             thread_send_cmd.pause.clear()
-        """
 
 #########
 
@@ -2177,13 +618,12 @@ class Pedro(Gtk.Window):
         servocmd = 11
         #servo_change = True
         serv2_chg = True
-        """
         if not thread_send_cmd.is_alive():
             thread_send_cmd.start()
             thread_send_cmd.pause.set()
         else:
             thread_send_cmd.pause.set()
-        """
+        
     # ---------------------------------
     # on_btn2Up_release
     # ---------------------------------  
@@ -2192,10 +632,10 @@ class Pedro(Gtk.Window):
         global serv2_chg
         #servo_change = False
         serv2_chg = False
-        """
+        
         if thread_send_cmd.pause.is_set():
             thread_send_cmd.pause.clear()
-        """
+        
     # ---------------------------------
     # on_btn2Down_press
     # ---------------------------------    
@@ -2206,13 +646,13 @@ class Pedro(Gtk.Window):
         servocmd = 22
         #servo_change = True
         serv2_chg = True
-        """
+        
         if not thread_send_cmd.is_alive():
             thread_send_cmd.start()
             thread_send_cmd.pause.set()
         else:
             thread_send_cmd.pause.set()
-        """
+        
 
     # ---------------------------------
     # on_btn2Down_release
@@ -2222,10 +662,10 @@ class Pedro(Gtk.Window):
         global serv2_chg
         #servo_change = False
         serv2_chg = False
-        """
+        
         if thread_send_cmd.pause.is_set():
             thread_send_cmd.pause.clear()
-        """
+        
 
 #########
 
@@ -2239,13 +679,13 @@ class Pedro(Gtk.Window):
         servocmd = 11
         #servo_change = True
         serv3_chg = True
-        """
+        
         if not thread_send_cmd.is_alive():
             thread_send_cmd.start()
             thread_send_cmd.pause.set()
         else:
             thread_send_cmd.pause.set()
-        """
+        
 
     # ---------------------------------
     # on_btn3Up_release
@@ -2255,10 +695,10 @@ class Pedro(Gtk.Window):
         global serv3_chg
         #servo_change = False
         serv3_chg = False
-        """
+        
         if thread_send_cmd.pause.is_set():
             thread_send_cmd.pause.clear()
-        """
+        
 
     # ---------------------------------
     # on_btn3Down_press
@@ -2270,13 +710,13 @@ class Pedro(Gtk.Window):
         servocmd = 22
         #servo_change = True
         serv3_chg = True
-        """
+        
         if not thread_send_cmd.is_alive():
             thread_send_cmd.start()
             thread_send_cmd.pause.set()
         else:
             thread_send_cmd.pause.set()
-        """
+        
 
     # ---------------------------------
     # on_btn3Down_release
@@ -2286,10 +726,10 @@ class Pedro(Gtk.Window):
         global serv3_chg
         #servo_change = False
         serv3_chg = False
-        """
+        
         if thread_send_cmd.pause.is_set():
             thread_send_cmd.pause.clear()
-        """
+        
 
 ########
 
@@ -2303,13 +743,13 @@ class Pedro(Gtk.Window):
         servocmd = 11
         #servo_change = True
         serv4_chg = True
-        """
+        
         if not thread_send_cmd.is_alive():
             thread_send_cmd.start()
             thread_send_cmd.pause.set()
         else:
             thread_send_cmd.pause.set()
-        """
+        
 
     # ---------------------------------
     # on_btn4Up_release
@@ -2319,10 +759,10 @@ class Pedro(Gtk.Window):
         global serv4_chg
         #servo_change = False
         serv4_chg = False
-        """
+        
         if thread_send_cmd.pause.is_set():
             thread_send_cmd.pause.clear()
-        """
+        
 
     # ---------------------------------
     # on_btn4Down_press
@@ -2334,13 +774,13 @@ class Pedro(Gtk.Window):
         servocmd = 22
         #servo_change = True
         serv4_chg = True
-        """
+        
         if not thread_send_cmd.is_alive():
             thread_send_cmd.start()
             thread_send_cmd.pause.set()
         else:
             thread_send_cmd.pause.set()
-        """
+        
 
     # ---------------------------------
     # on_btn4Down_release
@@ -2350,50 +790,63 @@ class Pedro(Gtk.Window):
         global serv4_chg
         #servo_change = False
         serv4_chg = False
-        """
+        
         if thread_send_cmd.pause.is_set():
             thread_send_cmd.pause.clear()
-        """
+        
 
     # ---------------------------------
     # on_rec_clicked
     # ---------------------------------
     def on_rec_clicked(self, button):
+        global recButton
+        recButton = True
         print("rec button was clicked")
+        """
         try:
             ser.write(bytearray([99, 44]))
         except:
             print ("Record unavailable. No Pedro Connected")
-
+        """
     # ---------------------------------
     # on_play_clicked
     # ---------------------------------
     def on_play_clicked(self, button):
+        global recButton
+        recButton = False
         print("play button was clicked")
+        """
         try:
             ser.write(bytearray([99, 55]))
         except:
             print ("Play unavailable. No Pedro Connected")
+        """
 
     # ---------------------------------
     # on_pause_clicked
     # ---------------------------------
     def on_pause_clicked(self, button):
         print("pause button was clicked")
+        """
         try:
             ser.write(bytearray([99, 66]))
         except:
             print ("Pause unavailable. No Pedro Connected")
+        """
 
     # ---------------------------------
     # on_stop_clicked
     # ---------------------------------
     def on_stop_clicked(self, button):
+        global recButton
+        recButton = False
         print("stop button was clicked")
+        """
         try:
             ser.write(bytearray([99, 77]))
         except:
             print ("Play unavailable. No Pedro Connected")
+        """
 
     # ---------------------------------
     # on_repeat_clicked
@@ -2423,10 +876,6 @@ class Pedro(Gtk.Window):
     # ---------------------------------
     def mouse_dragged(self, widget, e):
         global mXL, mYL
-
-
-
-
           
     # ---------------------------------
     # color_swatch_new
@@ -2444,7 +893,6 @@ class Pedro(Gtk.Window):
         button.add(area)
 
         return button
-
 
 # print("Pedro deconnected")
 # ---------------------------------
@@ -2483,9 +931,15 @@ def gtk_style():
 
 gtk_style()
 
+update_ser = Update_Serial()
+update_ser.serial_ports()
+
+thread_send_cmd = Send_Cmd()
+
 window = Pedro()
 window.connect("delete-event", Gtk.main_quit)
 window.show_all()
 
 
 Gtk.main()
+
