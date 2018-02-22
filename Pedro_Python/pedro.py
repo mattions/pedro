@@ -456,7 +456,7 @@ class Pedro(Gtk.Window):
         barH = Gtk.HSeparator(name = "label")
         boxVBar.pack_start(barH, False, False, 0)
 
-        pedroLbl = Gtk.Label("© Robto Pedro - Programming Educational Robotic \n Open Source Project", name="label_petit")
+        pedroLbl = Gtk.Label("© Robot Pedro - Programming Educational Robotic \n Open Source Project", name="label_petit")
         pedroLbl.set_justify(Gtk.Justification.CENTER)
 
         #################
