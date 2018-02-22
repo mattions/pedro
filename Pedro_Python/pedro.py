@@ -11,6 +11,7 @@
 #python_version  :3.6.1  
 #============================================================================================================
 
+ # -*-coding:Latin-1 -*
 import sys, os
 import glob
 import serial
@@ -92,10 +93,10 @@ flowbox2 = Gtk.FlowBox()
 flowbox3 = Gtk.FlowBox()
 flowbox4 = Gtk.FlowBox()
 
-serv1Lbl = Gtk.Label("50")
-serv2Lbl = Gtk.Label("50")
-serv3Lbl = Gtk.Label("50")
-serv4Lbl = Gtk.Label("50")
+serv1Lbl = Gtk.Label("50", name="label")
+serv2Lbl = Gtk.Label("50", name="label")
+serv3Lbl = Gtk.Label("50", name="label")
+serv4Lbl = Gtk.Label("50", name="label")
 
 global updateSerial
 updateSerial = True
@@ -284,9 +285,9 @@ class Pedro(Gtk.Window):
         ###########################################################
 
         hb = Gtk.HeaderBar()
-        hb.props.title = "Pedro"
+        hb.props.title = "Robot Pedro"
         self.set_titlebar(hb)
-        color_widget(self, 'White')
+        color_widget(self, 'black')
         #self.set_size_request(screen.get_width()/1.5, screen.get_height()/1.1)
         self.set_resizable(False)
         self.mouseClick = False
@@ -294,8 +295,6 @@ class Pedro(Gtk.Window):
         sepa = Gtk.VSeparator()
         buttonClose = Gtk.Button("Close")
         buttonClose.connect("clicked", self.on_close_clicked)
-        buttonAbout = Gtk.Button("About")
-        buttonAbout.connect("clicked", self.on_about_clicked)
         connected = Gtk.Label("Connected : ")
         btnUpdate = Gtk.Button("Serial")
         btnUpdate.connect("clicked", self.on_serial_updated)
@@ -306,12 +305,14 @@ class Pedro(Gtk.Window):
 
         pedro_combo.connect("changed", self.on_pedro_combo_changed)
         hb.pack_end(buttonClose)
-        hb.pack_end(buttonAbout)
 
         ###########################################################
         ######## Robot function
         ###########################################################
 
+
+        lblTitle = Gtk.Label("Robot Pedro", name="label_title")
+        barHTitle = Gtk.HSeparator(name = "label")
         ###################
         ###### Button servo
         ###################
@@ -319,7 +320,7 @@ class Pedro(Gtk.Window):
         hght = height/4
         boxHAllServo = Gtk.HBox()
 
-        lblBase = Gtk.Label("BASE")
+        lblBase = Gtk.Label("Base", name="label")
         boxV1 = Gtk.VBox()
         boxH1 = Gtk.HBox()
         btn1Up.set_size_request(wdth/2.5, hght/2.5)
@@ -337,7 +338,7 @@ class Pedro(Gtk.Window):
         boxVServoFrame1.pack_start(boxH1, False, False, 10)
         boxHAllServo.pack_start(boxVServoFrame1, True, True, 10)
         
-        lblForearm = Gtk.Label("FOREARM")
+        lblForearm = Gtk.Label("Forearm", name="label")
         boxV2 = Gtk.VBox()
         boxH2 = Gtk.HBox()
         btn2Up.set_size_request(wdth/2.5, hght/2.5)
@@ -355,7 +356,7 @@ class Pedro(Gtk.Window):
         boxVServoFrame2.pack_start(boxH2, False, False, 10)
         boxHAllServo.pack_start(boxVServoFrame2, True, True, 10)
         
-        lblHand = Gtk.Label("HAND")
+        lblHand = Gtk.Label("Hand", name="label")
         boxV3 = Gtk.VBox()
         boxH3 = Gtk.HBox()
         btn3Up.set_size_request(wdth/2.5, hght/2.5)
@@ -373,7 +374,7 @@ class Pedro(Gtk.Window):
         boxVServoFrame3.pack_start(boxH3, False, False, 10)
         boxHAllServo.pack_start(boxVServoFrame3, True, True, 10)
         
-        lblGripper = Gtk.Label("GRIPPER")
+        lblGripper = Gtk.Label("Gripper", name="label")
         boxV4 = Gtk.VBox()
         boxH4 = Gtk.HBox()
         btn4Up.set_size_request(wdth/2.5, hght/2.5)
@@ -418,7 +419,7 @@ class Pedro(Gtk.Window):
         boxHSpeed.pack_start(btnSpeed2, True, False, 10)
         boxHSpeed.pack_start(btnSpeed3, True, False, 10)
 
-        frameSpeed = Gtk.Frame()
+        frameSpeed = Gtk.Frame(name = "label")
         frameSpeed.set_label("Speed")
         frameSpeed.add(boxHSpeed)
         boxVSpeed.pack_start(frameSpeed, False, False, 10)
@@ -435,7 +436,7 @@ class Pedro(Gtk.Window):
         buttonPause.connect("clicked", self.on_pause_clicked)
         buttonStop = Gtk.Button(name="button", label="Stop")
         buttonStop.connect("clicked", self.on_stop_clicked)
-        buttonRepeat = Gtk.CheckButton("Repeat one time")
+        buttonRepeat = Gtk.CheckButton("Repeat one time", name = "label")
         buttonRepeat.connect("toggled", self.on_repeat_clicked)
         buttonClear = Gtk.Button(name="button", label="Clear")
         buttonClear.connect("clicked", self.on_clear_clicked)
@@ -450,24 +451,26 @@ class Pedro(Gtk.Window):
         boxVAllButton.pack_start(buttonClear, False, False, 0)
         boxHAllButton.pack_start(boxVAllButton, True, True, 10)
 
-
         boxVBar = Gtk.VBox()
     
-        barH = Gtk.HSeparator()
+        barH = Gtk.HSeparator(name = "label")
         boxVBar.pack_start(barH, False, False, 0)
 
-        pedroLbl = Gtk.Label("PEDRO - Programming Educational Robotic")
+        pedroLbl = Gtk.Label("© Robto Pedro - Programming Educational Robotic \n Open Source Project", name="label_petit")
+        pedroLbl.set_justify(Gtk.Justification.CENTER)
 
         #################
         ###### Frame main
         #################
         frameMAIN = Gtk.Frame()
         boxVAll = Gtk.VBox()
+        boxVAll.pack_start(lblTitle, False, False, 10)
+        boxVAll.pack_start(barHTitle, False, False, 20)
         boxVAll.pack_start(boxHAllServo, False, False, 0)
         boxVAll.pack_start(boxHAllSpeed, False, False, 0)
-        boxVAll.pack_start(boxHAllButton, False, False, 30)
-        boxVAll.pack_start(boxVBar, False, False, 0)
-        boxVAll.pack_start(pedroLbl, False, False, 10)
+        boxVAll.pack_start(boxHAllButton, True, True, 30)
+        boxVAll.pack_start(boxVBar, False, False, 20)
+        boxVAll.pack_start(pedroLbl, True, True, 10)
 
         """
         frameMAIN.add(boxVAll)
@@ -498,15 +501,6 @@ class Pedro(Gtk.Window):
         #thread_send_cmd.join()
         self.destroy()
         Gtk.main_quit()
-
-    # ---------------------------------
-    # on_about_clicked
-    # ---------------------------------
-    def on_about_clicked(self, button):
-        win = About()
-        win.connect("delete-event", Gtk.main_quit)
-        win.show_all()
-        Gtk.main()
 
     # ---------------------------------
     # on_serial_updated
@@ -909,7 +903,6 @@ def color_widget(widget, color):
 # ---------------------------------
 def gtk_style():
         css = b"""
-
 #button {
     color: #ffffff;
     background: #e80606;
@@ -918,7 +911,17 @@ def gtk_style():
     color: #ffffff;
     background: #d80606;
 }
-
+#label_title {
+    color: #ffffff;
+    font-size: 30;
+}
+#label {
+    color: #ffffff;
+}
+#label_petit {
+    color: #ffffff;
+    font-size: 10;
+}
         """
         style_provider = Gtk.CssProvider()
         style_provider.load_from_data(css)
