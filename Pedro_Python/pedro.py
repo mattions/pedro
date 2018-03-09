@@ -1,18 +1,20 @@
 #============================================================================================================
 #                              PEDRO : Programming Educational Robot
 #============================================================================================================
-#!/usr/bin/env python
 #title           :pedro.py
 #description     :Interface for Pedro Petit Robot an open source 3D robotic arm, with serial USB control
-#email           :pedropetitrobot@gmail.com
 #date            :2016-2017
 #version         :1.0
 #usage           :python3 pedro.py
 #python_version  :3.6.1  
 #============================================================================================================
 
- # -*-coding:Latin-1 -*
+# -*-coding:Latin-1 -*
+#!/usr/bin/python
+#!/usr/bin/env python
+
 import sys, os
+import signal
 import glob
 import serial
 import gi
@@ -21,11 +23,14 @@ import time
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Gdk, GdkPixbuf, GObject
 import threading
-#from threading import Thread
+
+pid = os.getpid()
+
 GObject.threads_init()
 
 screen = Gdk.Screen.get_default()
 #print (screen.get_width(), screen.get_height())
+
 
 global pedro_combo
 pedro_combo = Gtk.ComboBoxText()
@@ -136,7 +141,6 @@ class Update_Serial():
                 # this excludes your current terminal "/dev/tty"
                 ports = glob.glob('/dev/tty[A-Za-z]*')
             elif sys.platform.startswith('darwin'):
-                print ("lkjhljkhjlkhlk")
                 ports = glob.glob('/dev/cu.*')
             else:
                 raise EnvironmentError('Unsupported platform')
@@ -177,11 +181,14 @@ class Send_Cmd(threading.Thread):
         threading.Thread.__init__(self)
         self._stopevent = threading.Event( )
 
-
+    
     def join(self, *args):
         """ Stop the thread and wait for it to end. """
-        self._stopevent.set( )
-        threading.Thread.join(self, timeout=None)
+        #self._stopevent.set( )
+        print("ici")
+        thread_send_cmd = None
+
+    
 
     # ---------------------------------
     # start
@@ -221,7 +228,7 @@ class Send_Cmd(threading.Thread):
             print ("No Pedro Connected")
 
     # ---------------------------------
-    # send_cmd
+    # update_servo
     # ---------------------------------
     def update_servo(self):
         global recFile
@@ -456,7 +463,7 @@ class Pedro(Gtk.Window):
         barH = Gtk.HSeparator(name = "label")
         boxVBar.pack_start(barH, False, False, 0)
 
-        pedroLbl = Gtk.Label("© Robot Pedro - Programming Educational Robotic \n Open Source Project", name="label_petit")
+        pedroLbl = Gtk.Label("(c) Robot Pedro - Programming Educational Robotic \n Open Source Project", name="label_petit")
         pedroLbl.set_justify(Gtk.Justification.CENTER)
 
         #################
@@ -491,16 +498,6 @@ class Pedro(Gtk.Window):
         self.add(boxHMAIN)
         global initApp
         initApp = True
-
-    # ---------------------------------
-    # on_close_clicked
-    # ---------------------------------
-    def on_close_clicked(self, button):
-        global close_app
-        close_app = True
-        #thread_send_cmd.join()
-        self.destroy()
-        Gtk.main_quit()
 
     # ---------------------------------
     # on_serial_updated
@@ -888,6 +885,17 @@ class Pedro(Gtk.Window):
 
         return button
 
+
+    # ---------------------------------
+    # on_close_clicked
+    # ---------------------------------
+    def on_close_clicked(self, button):
+        global close_app
+        close_app = True
+        self.destroy()
+        Gtk.main_quit()
+        os.kill(pid, signal.SIGTERM)
+
 # print("Pedro deconnected")
 # ---------------------------------
 # color_widget
@@ -932,6 +940,7 @@ def gtk_style():
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
 
+
 gtk_style()
 
 update_ser = Update_Serial()
@@ -945,4 +954,3 @@ window.show_all()
 
 
 Gtk.main()
-
